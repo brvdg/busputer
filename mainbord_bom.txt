@@ -1,0 +1,21 @@
+Stückliste exportiert aus /Users/brun/ownCloud/BoardComputer/eagle/mainboard_lonet_v0.5/mainboard_lonet_v0.5.sch am 07.01.17 15:53
+
+Qty Value         Device             Package      Parts                                                Description                            
+1                 PINHD-1X12         1X12         JP5                                                  PIN HEADER                             
+1                 PINHD-1X16         1X16         JP4                                                  PIN HEADER                             
+1                 PINHD-1X3          1X03         5V                                                   PIN HEADER                             
+2                 PINHD-1X4          1X04         I2C_3V, I2C_5V                                       PIN HEADER                             
+2                 PINHD-1X9          1X09         JP1, LONET                                           PIN HEADER                             
+1                 PINHD-2X15         2X15         EXP                                                  PIN HEADER                             
+1                 R-EU_0207/10       0207/10      R15                                                  RESISTOR, European symbol              
+6   100n          C-EU025-024X044    C025-024X044 C1, C3, C5, C7, C9, C11                              CAPACITOR, European symbol             
+1   1N4004        1N4004             DO41-10      D19                                                  DIODE                                  
+6   22k           R-EU_0204/2V       0204V        R2, R6, R8, R10, R12, R14                            RESISTOR, European symbol              
+6   22u           CPOL-EUE2.5-6      E2,5-6       C2, C4, C6, C8, C10, C12                             POLARIZED CAPACITOR, European symbol   
+5   82k           R-EU_0204/2V       0204V        R5, R7, R9, R11, R13                                 RESISTOR, European symbol              
+1   82k           R-EU_0204/5        0204/5       R1                                                   RESISTOR, European symbol              
+12  BAT42         BAT42              DO35-10      D1, D2, D4, D5, D7, D8, D10, D11, D13, D14, D16, D17 DIODE                                  
+1   BC547         BC547-NPN-TO92-CBE TO92-CBE     T2                                                   NPN Transistror                        
+1   G5V1          G5V1               G5V1         K1                                                   RELAY                                  
+3   MOUNT-HOLE3.0 MOUNT-HOLE3.0      3,0          H1, H2, H3                                           MOUNTING HOLE with drill center marker 
+6   ZF12          ZENER-DIODEZD-2.5  ZDIO-2.5     D3, D6, D9, D12, D15, D18                            Z-Diode                                
