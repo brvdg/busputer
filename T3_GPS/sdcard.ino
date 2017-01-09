@@ -6,6 +6,7 @@
 
 void enable_sdcard() {
   #ifdef SDCARD
+  TRACE_PRINTLN(F("#->enable_sdcard"));
   if ( !SPI_lock ) {
     SPI_lock = true;
     for (int i = 0; i<25; i++) {
@@ -53,6 +54,7 @@ void log_to_sdcard() {
    * optional logging which are not standart starting with two "//" ore some other shit. I don't know yet.
    */
   #ifdef SDCARD
+  TRACE_PRINTLN(F("#->log_to_sdcard"));
   if ( !SPI_lock ) {
     SPI_lock = true;
     digitalWrite(8, HIGH);
@@ -121,7 +123,7 @@ void log_to_sdcard() {
 
 void dump_sd_card() {
 #ifdef SDCARD
-
+  TRACE_PRINTLN(F("#->dump_sd_card"));
   
   display_bootmsg(F("Init SD Card"));
   //bootmsg = F("Init SD Card");
@@ -226,6 +228,7 @@ void dump_sd_card() {
  */
 void dateTime(uint16_t* date, uint16_t* time) {
   #ifdef SDCARD
+  TRACE_PRINTLN(F("#->dateTime"));
   // return date using FAT_DATE macro to format fields
   *date = FAT_DATE(gps_year, gps_month, gps_day);
 
@@ -236,6 +239,7 @@ void dateTime(uint16_t* date, uint16_t* time) {
 
 void get_last_log(void) {
   #ifdef SDCARD
+  TRACE_PRINTLN(F("#->get_last_log"));
   if ( !SPI_lock ) {
     SPI_lock = true;
     
@@ -251,15 +255,21 @@ void get_last_log(void) {
 
     //strcpy(filename_tmp, "TRACK000.LOG");
     strcpy(filename_tmp, "TRACK000.KML");
-    for (uint8_t i = 0; i < 1000; i++) {
+    for (uint16_t i = 0; i < 1000; i++) {
       filename_tmp[5] = '0' + i / 100;
       filename_tmp[6] = '0' + i / 10 - (i / 100 * 10);
       filename_tmp[7] = '0' + i % 10;
+      TRACE_PRINT(F("#Check file: "));
+      TRACE_PRINT(filename_tmp);
       if (! SD.exists(filename_tmp)) {
+        TRACE_PRINTLN(F(" doesn't exist"));
+        //TRACE_PRINT(filename_tmp);
         break;
       }
       else {
+        TRACE_PRINTLN(F(" exist"));
         strcpy(filename, filename_tmp);
+        
       }
     }
 
@@ -352,11 +362,15 @@ void get_last_log(void) {
     }
     SPI_lock = false;  
   }
+  else {
+    TRACE_PRINTLN(F("#SPI locked"));
+  }
   #endif
 }
 
 void open_file() {
 #ifdef SDCARD
+  TRACE_PRINTLN(F("#->open_file"));
   if ( !SPI_lock ) {
     SPI_lock = true;
     //char filename[16];
@@ -373,11 +387,12 @@ void open_file() {
     strcpy(filename, "TRACK000.LOG");
     #endif
 
-    for (uint8_t i = 0; i < 1000; i++) {
+    for (uint16_t i = 0; i < 1000; i++) {
       filename[5] = '0' + i / 100;
       filename[6] = '0' + i / 10 - (i / 100 * 10);
       filename[7] = '0' + i % 10;
       if (! SD.exists(filename)) {
+        
         break;
       }
     } 
@@ -400,15 +415,18 @@ void open_file() {
     logfile.println(F("#start engine"));
     #endif //KMLLOG
 
+    SPI_lock = false;
+    TRACE_PRINTLN(F("#SPI unlock"));  
+
     log_to_sdcard();
-    
-    SPI_lock = false;  
+
   }
   #endif //LCD
 }
 
 void close_file() {
-#ifdef SDCARD
+  #ifdef SDCARD
+  TRACE_PRINTLN(F("#->close_file"));
   if ( !SPI_lock ) {
     SPI_lock = true;
     #ifdef KMLLOG

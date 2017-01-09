@@ -1,6 +1,6 @@
-#include <OneWire.h>
+//#include <OneWire.h>
 // DS18S20 Temperature chip i/o
-OneWire ds(10);  // on pin 10
+//OneWire ds(10);  // on pin 10
 
 
 
@@ -514,7 +514,11 @@ void TC3_Handler()
     TC->INTFLAG.bit.OVF = 1;    // writing a one clears the flag ovf flag
     
     #ifdef LCD
-    display_loop();
+    if ( lcd_update_timer < millis() ) {
+      //Serial.println(F("#it's time for display update"));
+      lcd_update_timer = millis() + LCD_UPDATE_TIMER;
+      display_loop();
+    }
     #endif //LCD
 
     button();

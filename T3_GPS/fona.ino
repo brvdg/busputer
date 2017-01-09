@@ -269,7 +269,7 @@ void fona_get_gps() {
       Serial.println(distance, DEC);
 #endif
 
-      //if (gps_speed > 10) {
+      if (gps_speed > 10) {
         gps_distance += (int)(distance + .5);
         gps_distance_trip += (int)(distance + .5);
         //gps_distance_today += (int)(distance + .5);
@@ -277,7 +277,7 @@ void fona_get_gps() {
         
         gps_latitude_old = gps_latitude;
         gps_longitude_old = gps_longitude;
-      //}
+      }
 
       /*
        * Track an Log possition
@@ -459,7 +459,7 @@ void fona_checkSMS() {
             }
             #ifdef tracking
             else if (strcasestr_P(replybuffer, PSTR("trackingon"))) {
-              //Serial.println(F("--> Tracking ON"));
+              Serial.println(F("#turn Tracking ON"));
               //fona.sendSMS(callerIDbuffer, "Tracking ON");
               if (fona_tracking_on()) {
                 sprintf(replybuffer, PSTR("Tracking ON"));
@@ -471,6 +471,7 @@ void fona_checkSMS() {
               }
             }
             else if (strcasestr_P(replybuffer, PSTR("trackingoff"))) {
+              Serial.println(F("#turn Tracking OFF"));
               fona_tracking_off();
               sprintf(replybuffer, PSTR("Tracking OFF"));
             }
@@ -584,14 +585,15 @@ boolean fona_tracking_on() {
     gprs_tracking = true;
     Serial.println(F("#GPRS turned ON"));
 
-    #ifdef LCD
+    //#ifdef LCD
     //init_display();
 
     display_bootmsg(F("GPRS turned ON"));
     //bootmsg = F("#GPRS turned ON");
     //display_update();
+    INFO_PRINTLN(F("#GPRS turned ON"));
     delay(5000);
-    #endif
+    //#endif
     return true;
   }
   #endif
@@ -668,6 +670,8 @@ void fona_battcheck() {
   if (! fona.getBattPercent(&vbat)) {
     Serial.println(F("Failed to read Batt"));
   } 
+  DEBUG_PRINT(F("Batt: "));
+  DEBUG_PRINTLN(vbat);
   if (vbat > 0 ) {
     if (vbat < 20 ) {
       if (!battstatus_send) {

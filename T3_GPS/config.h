@@ -17,7 +17,7 @@
 // Enable Fona Libary
 #define FONA
 
-#define SMS_Keyword "G285"
+#define SMS_Keyword "PWD"
 #define MyNumber "+4915141284285"
 // enable Internet tracking
 #define tracking
@@ -37,7 +37,10 @@
 //#define WD
 
 // enable Debugging
+#define INFO
 //#define DEBUG
+#define TRACE
+
 
 // add an offset to the real speed
 #define SPEED_OFFSET 5
@@ -234,13 +237,26 @@ boolean button_timer_lock = false;
 #endif
 
 
-
+#ifdef INFO
+ #define INFO_PRINT(x)  Serial.print (x)
+ #define INFO_PRINTLN(x)  Serial.println (x)
+#else
+ #define INFO_PRINT(x)
+ #define INFO_PRINTLN(x)
+#endif
 #ifdef DEBUG
  #define DEBUG_PRINT(x)  Serial.print (x)
  #define DEBUG_PRINTLN(x)  Serial.println (x)
 #else
  #define DEBUG_PRINT(x)
  #define DEBUG_PRINTLN(x)
+#endif
+#ifdef TRACE
+ #define TRACE_PRINT(x)  Serial.print (x)
+ #define TRACE_PRINTLN(x)  Serial.println (x)
+#else
+ #define TRACE_PRINT(x)
+ #define TRACE_PRINTLN(x)
 #endif
 
 

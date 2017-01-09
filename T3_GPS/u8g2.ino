@@ -63,9 +63,10 @@ void init_display(void) {
 
 
 void display_loop() {
-   if ( lcd_update_timer < millis() ) {
+  //TRACE_PRINTLN(F("#->display_loop"));
+  //if ( lcd_update_timer < millis() ) {
     //Serial.println(F("#it's time for display update"));
-    lcd_update_timer = millis() + LCD_UPDATE_TIMER;
+    //lcd_update_timer = millis() + LCD_UPDATE_TIMER;
     if ( !lcd_update_timer_lock ) {
       if ( !SPI_lock ) {
         SPI_lock = true;
@@ -74,20 +75,22 @@ void display_loop() {
         lcd_update_timer_lock = false;
         SPI_lock = false;
       } else {
-        DEBUG_PRINTLN(F("#SPI Bus locked"));
+        //DEBUG_PRINTLN(F("#SPI Bus locked"));
         //Serial.println(F("#SPI Bus locked"));
       }
     }
     else {
       Serial.println(F("#display update locked..."));
     }
-  }
+  //}
 }
 
 
 
 void draw(void) {
+  //TRACE_PRINTLN(F("#->draw"));
   char buf[24];
+  
 
   // graphic commands to redraw the complete screen should be placed here
   u8g2.setFont(small_font);
