@@ -16,14 +16,14 @@
 #define FONA
 
 #define SMS_Keyword "PWD"
-#define MyNumber "+4915141284285"
+#define MyNumber "+4911234567"
 // enable Internet tracking
 //#define tracking  // ???
 //#define tracking_ON // enable permanent tracking ???
 #define GPRS_APN "internet.t-mobile"
 #define GPRS_user "t-mobile"
 #define GPRS_pw "tm"
-#define TRACKING_URL "brun.rhoencouch.de/gps.php?visor=false&latitude=%s&longitude=%s&altitude=%s&time=%s&satellites=%s&speedOTG=%s&course=%s"
+#define TRACKING_URL "my.tracking.url/gps.php?visor=false&latitude=%s&longitude=%s&altitude=%s&time=%s&satellites=%s&speedOTG=%s&course=%s"
 
 
 // for Dalles DS18B20 Temperatursensor
