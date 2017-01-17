@@ -24,8 +24,8 @@ pinning for main connector on development bord v0.5
 22 - GND
 23 - arduino pin 9
 24 - GND
-25 - button
-26 - button
+25 - arduini pin 6
+26 - + 3,3V
 27 - I2C +5V *
 28 - I2C SDA *
 29 - I2C SCL *

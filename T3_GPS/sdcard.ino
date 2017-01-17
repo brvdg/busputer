@@ -1,26 +1,27 @@
-/***************************************************
- *  This code is based on the SdFat library from Bill Greiman.
- *  GIT: https://github.com/greiman/SdFat
- *
- *  Author: Brun
- *  
- ****************************************************/
+/*
+ * https://github.com/greiman/SdFat
+ */
 
 #ifdef SDCARD
 
 void enable_sdcard() {
-  //#ifdef SDCARD
+  #ifdef SDCARD
   TRACE_PRINTLN(F("#->enable_sdcard"));
   if ( !SPI_lock ) {
     SPI_lock = true;
     for (int i = 0; i<25; i++) {
+      //Serial.println("#enable SD Card");
 
       display_bootmsg(F("Init SD Card"));
       // initialize the SD card at SPI_HALF_SPEED to avoid bus errors with
       // breadboards.  use SPI_FULL_SPEED for better performance.
       if (!SD.cardBegin(cardSelect, SPI_FULL_SPEED)) {
         display_bootmsg(F("cardBegin failed"));
+        //bootmsg = F("cardBegin failed");
+        //Serial.println(F("#Card init. failed!"));
+        //display_update();
         delay(500);
+        //Serial.println("#enable SD Card");
         //return;
       }
       else {
@@ -31,6 +32,9 @@ void enable_sdcard() {
     }
     if (!SD.fsBegin()) {
       display_bootmsg(F("File System initialization failed."));
+      //bootmsg = F("File System initialization failed.");
+      //Serial.println(F("#File System initialization failed."));
+      //display_update();
       delay(3000);
       //return;
       SDmount = false;
@@ -38,7 +42,7 @@ void enable_sdcard() {
     SPI_lock = false;
   }
   
-  //#endif
+  #endif
 }
 
 void log_to_sdcard() {
@@ -49,9 +53,8 @@ void log_to_sdcard() {
    * Debugging informations starting with a "#"
    * optional logging which are not standart starting with two "//" ore some other shit. I don't know yet.
    */
-  //#ifdef SDCARD
+  #ifdef SDCARD
   TRACE_PRINTLN(F("#->log_to_sdcard"));
-  if ( !SDmount ) return;
   if ( !SPI_lock ) {
     SPI_lock = true;
     digitalWrite(8, HIGH);
@@ -110,24 +113,35 @@ void log_to_sdcard() {
     SPI_lock = false;
   }
   else {
-    DEBUG_PRINTLN(F("#SPI Bus locked"));
-    //Serial.println(F("#SPI Bus locked"));
+    //DEBUG_PRINTLN(F("#SPI Bus locked"));
+    Serial.println(F("#SPI Bus locked"));
   }
   digitalWrite(8, LOW);
-  #endif // KMLLOG
-  //#endif
+  #endif
+  #endif
 }
 
 void dump_sd_card() {
-  //#ifdef SDCARD
+#ifdef SDCARD
   TRACE_PRINTLN(F("#->dump_sd_card"));
   
   display_bootmsg(F("Init SD Card"));
+  //bootmsg = F("Init SD Card");
+  //display_update();
   if (!SD.begin(cardSelect)) {
     display_bootmsg(F("Card init. failed!"));
+    //Serial.println("#Card init. failed!");
+    //error(2);
+//#ifdef LCD
+    //bootmsg = F("Card init. failed!");
+    //display_update();
+//#endif
   }
 
   display_bootmsg(F("dumping ..."));
+  //bootmsg = F("dumping ...");
+  //display_update();
+  //Serial.println(F("#Dump start"));
 
   File dir = SD.open("/");
   
@@ -138,6 +152,8 @@ void dump_sd_card() {
   
   while (logfile.openNext(SD.vwd(), O_READ)) {
 
+    //logfile.printName(&Serial);
+    //Serial.println(logfile.printName());
 
     if (logfile.isDir()) {
       // Indicate a directory.
@@ -147,10 +163,15 @@ void dump_sd_card() {
     logfile.getName(chfilename, 13);
     Serial.println(chfilename);
     String filename = String(chfilename);
+    //logfile.printName(&filename);
     int filetest = filename.indexOf(".KML");
     if ( filetest == 8 ) {
+      //Serial.println(F("#yeaha"));
       display_bootmsg(F("dumping "));
       display_bootmsg(chfilename);
+      //bootmsg = F("dumping ");
+      //bootmsg += chfilename;
+      //display_update();
       while (logfile.available()) {
         Serial.write(logfile.read());
       }
@@ -158,11 +179,47 @@ void dump_sd_card() {
 
 
     logfile.close();
+    /*String filename = entry.name();
+
+    File entry =  dir.openNextFile();
+    if (! entry) {
+      // no more files
+      Serial.println(F("#no more files"));
+      break;
+    }*/
+    
+    // files have sizes, directories do not
+    /*String filename = entry.name();
+    int filetest = filename.indexOf(".KML");
+    if ( filetest == 8 ) {
+      if (entry.size() != 0 ) {
+        Serial.print(F("# "));
+        Serial.print(entry.name());
+        Serial.print(F("\t\t"));
+        Serial.print(entry.size(), DEC);
+        Serial.println(F(" Byte"));
+        */
+        /*
+         * Export the file
+         */
+        /*
+        File dataFile = SD.open(filename);
+
+        // if the file is available, write to it:
+        if (dataFile) {
+          while (dataFile.available()) {
+            Serial.write(dataFile.read());
+          }
+          dataFile.close();
+        }
+      }
+    }
+    entry.close();*/
   }
 
   Serial.println(F("#Dump Complete"));
 
-  //#endif
+#endif
 }
 
 
@@ -180,15 +237,9 @@ void dateTime(uint16_t* date, uint16_t* time) {
   #endif
 }
 
-
-
 void get_last_log(void) {
-  //#ifdef SDCARD
+  #ifdef SDCARD
   TRACE_PRINTLN(F("#->get_last_log"));
-  display_bootmsg(F("Check Files"));
-
-  if ( !SDmount ) return;
-  
   if ( !SPI_lock ) {
     SPI_lock = true;
     
@@ -218,12 +269,12 @@ void get_last_log(void) {
       else {
         TRACE_PRINTLN(F(" exist"));
         strcpy(filename, filename_tmp);
-        lastfile = i;
+        
       }
     }
 
-    INFO_PRINT(F("#Last Log:"));
-    INFO_PRINTLN(filename);
+    Serial.println(F("#Last Log:"));
+    Serial.println(filename);
     File dataFile = SD.open(filename);
     unsigned long filesize = dataFile.size();
   
@@ -235,25 +286,32 @@ void get_last_log(void) {
       while (dataFile.available()) {
         ch = dataFile.read();
         if (ch == '\n') {
+          //Serial.println("...");
           field = 0;
           i = 0;
           comment = true;
         } else {
           if (ch == ',') {
             
+            //Serial.println(replybuffer);
             if (comment) {
               switch (field) {
+                //case 1: MainMenuPos = 3; break;
                 case 2: 
                   gps_latitude = atof(replybuffer); 
+                  //Serial.println(replybuffer);
                   break;
                 case 3: 
                   gps_longitude = atof(replybuffer); 
+                  //Serial.println(replybuffer);
                   break;
                 case 9: 
                   gps_distance = atoi(replybuffer); 
+                  //Serial.println(replybuffer);
                   break;
                 case 11:
                   engine_running_total_last = atoi(replybuffer);
+                  //Serial.println(replybuffer);
               }
             } 
             else if ( ch == '!' ) {
@@ -261,10 +319,11 @@ void get_last_log(void) {
             }
             else if ( ch == 'l' ) {
               fileclosed = true;
-              INFO_PRINTLN("#last file is closed");
+              Serial.println("#last file is closed");
             }
 
           
+            //strcpy(replybuffer, "");
             for (i = 0; i < 200; i++) {
               replybuffer[i] = '\0';
             }
@@ -273,16 +332,20 @@ void get_last_log(void) {
             
           }
           else {
+            //received += ch;
+            //Serial.write(ch);
             replybuffer[i] = ch;
             i++;
           }
         }
       
+        //Serial.write(ch);
       }
       dataFile.close();
+      //Serial.println(F("#fin"));
 
       if ( !fileclosed ) {
-        INFO_PRINTLN(F("#last file is not closed..."));
+        Serial.println(F("#last file is not closed..."));
         if (!dataFile.open(filename, O_RDWR | O_CREAT | O_AT_END)) {
           SD.errorHalt("opening test.txt for write failed");
         }
@@ -302,17 +365,15 @@ void get_last_log(void) {
   else {
     TRACE_PRINTLN(F("#SPI locked"));
   }
-  //#endif
+  #endif
 }
 
 void open_file() {
-  //#ifdef SDCARD
+#ifdef SDCARD
   TRACE_PRINTLN(F("#->open_file"));
-
-  if ( !SDmount ) return;
-  
   if ( !SPI_lock ) {
     SPI_lock = true;
+    //char filename[16];
 
     // make sure that no other file is opened
     logfile.close();
@@ -326,13 +387,12 @@ void open_file() {
     strcpy(filename, "TRACK000.LOG");
     #endif
 
-    for (uint16_t i = lastfile; i < 1000; i++) {
+    for (uint16_t i = 0; i < 1000; i++) {
       filename[5] = '0' + i / 100;
       filename[6] = '0' + i / 10 - (i / 100 * 10);
       filename[7] = '0' + i % 10;
-      TRACE_PRINT(F("#Check file: "));
-      TRACE_PRINT(filename);
       if (! SD.exists(filename)) {
+        
         break;
       }
     } 
@@ -361,15 +421,12 @@ void open_file() {
     log_to_sdcard();
 
   }
-  //#endif //LCD
+  #endif //LCD
 }
 
 void close_file() {
-  //#ifdef SDCARD
+  #ifdef SDCARD
   TRACE_PRINTLN(F("#->close_file"));
-
-  if ( !SDmount ) return;
-  
   if ( !SPI_lock ) {
     SPI_lock = true;
     #ifdef KMLLOG
@@ -386,7 +443,7 @@ void close_file() {
     strcpy(filename, "-");
     SPI_lock = false;  
   }
-  //#endif
+#endif
 }
 
 #endif //SDCARD
