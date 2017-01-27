@@ -1,3 +1,9 @@
-Version: 170118a
+Version 170125a
+
+- add I2C sensor SI7021
+- add VW Kombiinstrumen temperature sensor
+- add function to mood the backlight LED
+
+Version 170118a
 
 - add "custom" functions for user defined code.
