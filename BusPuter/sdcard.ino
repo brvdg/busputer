@@ -17,7 +17,7 @@ void enable_sdcard() {
 
       display_bootmsg(F("Init SD Card"));
       // initialize the SD card at SPI_HALF_SPEED to avoid bus errors with
-      // breadboards.  use SPI_FULL_SPEED for better performance.
+      // breadbords.  use SPI_FULL_SPEED for better performance.
       if (!SD.cardBegin(cardSelect, SPI_FULL_SPEED)) {
         display_bootmsg(F("cardBegin failed"));
         delay(500);
@@ -45,7 +45,7 @@ void log_to_sdcard() {
   /*
    * Logging format (not for KML)
    * Default values
-   * utctime(yyyymmddHHMMSS),fixstatus,latitude,longitude,altitude,speed,course,view_satellites,used_satellites,distance,board_voltage
+   * utctime(yyyymmddHHMMSS),fixstatus,latitude,longitude,altitude,speed,course,view_satellites,used_satellites,distance,bord_voltage
    * Debugging informations starting with a "#"
    * optional logging which are not standart starting with two "//" ore some other shit. I don't know yet.
    */
@@ -92,7 +92,7 @@ void log_to_sdcard() {
       logfile.print(F(","));
       logfile.print(gps_distance, DEC);
       logfile.print(F(","));
-      logfile.print(board_voltage, 1);
+      logfile.print(bord_voltage, 1);
       logfile.print(F(","));
       logfile.print(engine_running_total, DEC);
       logfile.print(F(","));

@@ -4,19 +4,19 @@
  * https://github.com/brvdg/busputer/wiki
  ****************************************************/
 
-// Enable Display
+// Display Configuration
 #define LCD
 #define LCD_LED_MAX 255
-#define LCD_LED_MIN 0
+#define LCD_LED_MIN 20
 
-// Enable SD Card
-#define SDCARD
+// SD Card
+//#define SDCARD
 
-// Enable Fona Libary
+// Fona Configuration
 #define FONA
 
 #define SMS_Keyword "PWD"
-#define MyNumber "+4911234567"
+#define MyNumber "+4917123456789"
 // enable Internet tracking
 //#define tracking  // ???
 //#define tracking_ON // enable permanent tracking ???
@@ -28,7 +28,17 @@
 
 // for Dalles DS18B20 Temperatursensor
 #define ONEWIRE
+#define DS18B20_AS_OUT
+//#define DS18B20_AS_IN
 
+// I2S Sensors
+#define I2C
+#define SI7021
+#define SI7021_AS_IN
+//#define SI7021_AS_OUT
+
+// VW Tempsensorm
+#define VW_WATER_TEMP A2
 
 // enable Watchdog
 //#define WD
@@ -70,7 +80,7 @@
 
 
 /*
- * Custom defined configuration
+ * Custom defined Pin configuration
  */
 
 #ifdef CUSTOMBOARD
@@ -79,15 +89,23 @@
 #define LCD_CLOCK 12
 #define LCD_DATA 13
 
+
+
+
+
 // FONA
 #define FONA_RST 5
 
 // OneWire
 #define ONE_WIRE_BUS 6
+//#define DS18B20
+
 
 #define BUTTON_PIN_1 9
-#define X_Kontakt A0
-#define DIMMER A1
+#define X_Kontakt A1
+#define DIMMER A0
+#define DIMMER_MAX_mV 13800
+#define DIMMER_MIN_mV 7800
 
 #define FeatherLED8 8
 
@@ -95,14 +113,61 @@
 
 
 
-// U8Glib
+/*
+ * U8Glib
+ */
 
 #ifdef LCD
 #ifdef ARDUINO_ARCH_SAMD
 #include <U8g2lib.h>
+//Software SPI
+//U8G2_UC1701_EA_DOGS102_1_4W_SW_SPI u8g2(U8G2_R0, /* clock=*/ 13, /* data=*/ 11, /* cs=*/ 10, /* dc=*/ 9, /* reset=*/ 8);
+//Hardware SPI
+U8G2_UC1701_EA_DOGS102_1_4W_HW_SPI u8g2(U8G2_R0, LCD_CLOCK, LCD_DATA);
+
+//U8G2_ST7565_EA_DOGM128_1_4W_SW_SPI u8g2(U8G2_R0, /* clock=*/ 13, /* data=*/ 11, /* cs=*/ 10, /* dc=*/ 9, /* reset=*/ 8);
+//U8G2_ST7565_EA_DOGM128_1_4W_HW_SPI u8g2(U8G2_R0, 12, 13);
+
+
+/*
+   https://github.com/olikraus/u8glib/wiki/fontsize
+   ATTENTION!!! Fonts need space
+*/
+
+#define small_font u8g2_font_profont10_tf //2311
+#define medium_font u8g2_font_profont12_tf //2311
+#define big_font u8g2_font_profont29_mn //2719
+
 #else
 #include <U8glib.h>
+
+//Software SPI
+//U8GLIB_DOGS102 u8g(13, 12, 11, 10);    // U8GLIB_DOGS102(sck, mosi, cs, a0 [, reset])
+U8GLIB_DOGM132 u8g(13, 12, 11, 10);   // SPI Com: SCK = 13, MOSI = 12, CS = 11, A0 = 10
+
+//Hardware SPI
+//U8GLIB_DOGS102 u8g(10, 8);    // U8GLIB_DOGS102(cs, a0 [, reset])
+
+/*
+ * https://github.com/olikraus/u8glib/wiki/fontsize
+ * ACHTUNG: Fonts brauchen sehr viel Platz!!!
+ */
+
+
+//#define small_font u8g_font_courB08r //1145
+#define small_font u8g_font_5x8r //805
+//#define small_font u8g_font_5x7 //1500
+//#define medium_font u8g_font_courB14r //2167
+//#define medium_font u8g_font_courB12r //1857
+#define medium_font u8g_font_6x13r //1041
+
+#define big_font u8g_font_courB24 //707
+
 #endif //ARDUINO_ARCH_SAMD
+
+// this defines the starting possition.
+#define Xpos 0
+#define Ypos 14
 
 #define LCD_UPDATE_TIMER 200 // 200ms
 unsigned long lcd_update_timer = 0;
@@ -112,7 +177,9 @@ int MainMenuPos = 0;
 
 #endif //LCD
 
-// SD Card configuration
+/*
+ * SD Card configuration
+ */
 #define cardSelect 4
 #define KMLLOG    //???
 #ifdef SDCARD
@@ -131,7 +198,10 @@ uint16_t lastfile = 0;
 
 #endif //SDCARD
 
-// FONA Library configuration
+/*
+ * FONA library
+ */
+
 #ifdef FONA
 //#define SMS_Commands //???
 #define SPEED //this enables speedinformations
@@ -238,10 +308,77 @@ uint32_t gprs_lasttrack = 0; //???
 /*
  * DS18B20 Temperatursensor
  */
-//#define DS18B20_PIN 10
-#define ONEWIRE_TIMER 10000 // 10s
+#ifdef ONEWIRE
+#include <DallasTemperature.h>
+OneWire oneWire(ONE_WIRE_BUS);
+DallasTemperature sensors(&oneWire);
+
+#define ONEWIRE_TIMER 500 // 10s
 unsigned long onewire_timer = 0;
 
+#ifdef DS18B20_AS_IN
+#define TEMPERATURE_IN
+#endif // DS18B20_AS_IN
+#ifdef DS18B20_AS_OUT
+#define TEMPERATURE_OUT
+#endif // DS18B20_AS_OUT
+
+#endif // ONEWIRE
+
+
+/*
+ * I2C Sensor
+ */
+#ifdef I2C
+#include <Wire.h>
+
+#define I2C_TIMER 1000 // 200ms
+unsigned long i2c_timer = 0;
+
+
+#ifdef SI7021
+double si7021_temperature;
+double si7021_humidity;
+#endif // SI7021
+
+#ifdef SI7021_AS_IN
+#define TEMPERATURE_IN
+#define HUMIDITY_IN
+#endif // SI7021_AS_IN
+#ifdef SI7021_AS_OUT
+#define TEMPERATURE_OUT
+#define HUMIDITY_OUT
+#endif // SI7021_AS_OUT
+
+#endif // I2C
+
+/*
+ * Analog Ports
+ */
+
+// VW Temperature sensor
+int water_temp_V = 0; // Voltage off port
+int water_temp_ohm = 0;
+int water_temp = 0;
+
+// which analog pin to connect
+//#define THERMISTORPIN A1         
+// resistance at 25 degrees C
+#define THERMISTORNOMINAL 300      
+// temp. for nominal resistance (almost always 25 C)
+#define TEMPERATURENOMINAL 55  
+// how many samples to take and average, more takes longer
+// but is more 'smooth'
+//#define NUMSAMPLES 1
+// The beta coefficient of the thermistor (usually 3000-4000)
+#define BCOEFFICIENT 4000
+// the value of the 'other' resistor
+#define SERIESRESISTOR 50    
+
+#define VW_WATER_TEMP_MULTIPLICATOR 1.56 // the multiplicator for Analog Port. 
+
+#define VW_WATER_TEMP_TIMER 1000 // 200ms
+unsigned long water_temp_timer = 0;
 
 /*
  *  Input/Output
@@ -284,6 +421,7 @@ uint8_t button_1_double = 0;
  #define TRACE_PRINT(x)
  #define TRACE_PRINTLN(x)
 #endif
+
 
 
 /*

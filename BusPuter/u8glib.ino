@@ -15,37 +15,8 @@
 
 #ifdef LCD
 
-/*
- * https://github.com/olikraus/u8glib/wiki/fontsize
- * ACHTUNG: Fonts brauchen sehr viel Platz!!!
- */
-
-#include "U8glib.h"
-
-
-//#define small_font u8g_font_courB08r //1145
-#define small_font u8g_font_5x8r //805
-//#define small_font u8g_font_5x7 //1500
-//#define medium_font u8g_font_courB14r //2167
-//#define medium_font u8g_font_courB12r //1857
-
-#define medium_font u8g_font_6x13r //1041
-
-//#define big_font u8g_font_courB24n //707
-
-//#define BG_LED 9
-
-
-int y_pos = 0;  // global variable
-int x_pos = 0;  // global variable
-
-//Software SPI
-//U8GLIB_DOGS102 u8g(13, 12, 11, 10);    // U8GLIB_DOGS102(sck, mosi, cs, a0 [, reset])
-U8GLIB_DOGM132 u8g(13, 12, 11, 10);   // SPI Com: SCK = 13, MOSI = 12, CS = 11, A0 = 10
-
-//Hardware SPI
-//U8GLIB_DOGS102 u8g(10, 8);    // U8GLIB_DOGS102(cs, a0 [, reset])
-
+//Menu defination
+#define MENU_clock 1
 
 
 
@@ -74,6 +45,20 @@ void init_display() {
 
 
 void draw(void) {
+
+  
+  switch (MainMenuPos) {
+    case 0: bootscreen(); break;
+    case MENU_clock: menu_clock(); break; // 1
+    
+    default: {
+      menu_clock();
+      MainMenuPos = 1;
+      break;
+    }
+  }
+
+  
   char buf[9];
   
   // graphic commands to redraw the complete screen should be placed here  
@@ -81,62 +66,6 @@ void draw(void) {
   //u8g.setFont(u8g_font_freedoomr25n);
   //u8g.setFont(u8g_font_osb21);
   //u8g.drawStr( 0, y_pos, "18:29");
-  
-
-  u8g.setFontPosTop();
-  u8g.setPrintPos(0, 0);
-  if (gps_success) {
-    //u8g.print(F("lat:   "));
-    //u8g.print(gps_latitude, DEC);
-    //u8g.setPrintPos(0, 8);
-    //u8g.print(F("long:  "));
-    //u8g.print(F(":"));
-    //u8g.print(gps_longitude, DEC);
-    u8g.setFont(medium_font);
-    u8g.setFontPosTop();
-    u8g.setPrintPos(0, 0);
-    //u8g.print(gps_speed, DEC);
-    
-    //u8g.setFont(small_font);
-    //u8g.setPrintPos(0, 8);
-    //u8g.print(F("alti:  "));
-    //u8g.print(gps_altitude, DEC);
-    //u8g.setPrintPos(64, 8);
-    u8g.print(F("speed: "));
-    sprintf (buf, "%3d km/h", gps_speed);
-    u8g.print(buf);
-    //u8g.print(gps_speed, DEC);
-    //u8g.setPrintPos(0,16);
-    //u8g.print(F("Time:"));
-    //u8g.print(fona_time);
-    //u8g.setPrintPos(0,24);
-    //u8g.print(F("distance:"));
-    //u8g.print(gps_distance, DEC);
-
-    u8g.setFont(small_font);
-    u8g.setFontPosTop();
-    u8g.setPrintPos(0, 16);
-    u8g.print(F("dist:"));
-    //u8g.print(km_all, DEC);
-    //u8g.print(F(" ( "));
-    //u8g.print(km_1, DEC);
-    //u8g.print(F(" )"));
-    u8g.setPrintPos(0, 24);
-    u8g.print(F("Batt:"));
-    u8g.print(fona_batt, DEC);
-    u8g.print(F("%"));
-
-    
-    sprintf (buf, "%3d%%", fona_batt);
-    u8g.drawStr(112, 0, buf);
-    
-  }
-  else {
-    //u8g.print(F("waiting for GPS..."));
-    u8g.print(bootmsg);
-  }
-  //u8g.print("Hello World");
-  //u8g.drawStr( 0, 22, "Hello World!");
 
 }
 
@@ -148,6 +77,85 @@ void display_update(void) {
   } while( u8g.nextPage() );
 }
 
+void display_loop() {
+  //TRACE_PRINTLN(F("#->display_loop"));
+  if ( !lcd_update_timer_lock ) {
+    if ( !SPI_lock ) {
+      SPI_lock = true;
+      lcd_update_timer_lock = true;
+      display_update();
+      lcd_update_timer_lock = false;
+      SPI_lock = false;
+    } else {
+      TRACE_PRINTLN(F("#SPI Bus locked"));
+    }
+  }
+  else {
+    Serial.println(F("#display update locked..."));
+  }
+}
 
-#endif
+/*
+ * simple clock with date
+ */
+void menu_clock() {
+  char buf[24];
+
+  u8g.setFont(big_font);
+  u8g.setFontPosTop();
+  u8g.setPrintPos(Xpos + 10, Ypos);
+  sprintf(buf, "%02d:%02d", hour, minute);
+  u8g.print(buf);
+
+  u8g.setFont(medium_font);
+  u8g.setFontPosTop();
+  u8g.setPrintPos(Xpos + 22, Ypos + 24);
+  sprintf(buf, "%02d.%02d.%04d", day, month, year);
+  u8g.print(buf);
+
+  switch (button_1) {
+    case 1: MainMenuPos++; break;
+    case 2: MainMenuPos--; break;
+  }
+  button_1 = 0;
+}
+
+void bootscreen() {
+  //u8g.drawXBMP( 48, 0, vw_width, vw_height, vw_bits);
+  u8g.setFontPosTop();
+  //u8g2.setCursor(24, 0);
+  u8g.setPrintPos(Xpos, Ypos);
+  u8g.print(bootmsg1);
+  u8g.setPrintPos(Xpos, Ypos + 8);
+  u8g.print(bootmsg2);
+  u8g.setPrintPos(Xpos, Ypos + 16);
+  u8g.print(bootmsg3);
+
+}
+void display_bootmsg(String msg) {
+  bootmsg1 = bootmsg2;
+  bootmsg2 = bootmsg3;
+  bootmsg3 = msg;
+
+  //bootmsg = "Waiting for Serial";
+  display_update();
+
+  INFO_PRINT(F("#"));
+  INFO_PRINTLN(msg);
+}
+
+#else //LCD
+/*void init_display(void) {
+  //empty funktion to disable the LCD insted to use "#ifdef LCD" in the code
+  }*/
+
+/*void display_update(void) {
+  //empty funktion to disable the LCD insted to use "#ifdef LCD" in the code
+  }*/
+
+void display_bootmsg(String msg) {
+  INFO_PRINT(F("#"));
+  INFO_PRINTLN(msg);
+}
+#endif //
 #endif

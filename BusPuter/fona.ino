@@ -162,13 +162,13 @@ void fona_get_gps() {
     fona.getGPS(0, replybuffer, 120);
     DEBUG_PRINTLN(F("#Reply in format: mode,fixstatus,utctime(yyyymmddHHMMSS),latitude,longitude,altitude,speed,course,fixmode,reserved1,HDOP,PDOP,VDOP,reserved2,view_satellites,used_satellites,reserved3,C/N0max,HPA,VPA"));
     DEBUG_PRINT(F("#"));
-    DEBUG_PRINTLN(gpsdata);
+    DEBUG_PRINTLN(replybuffer);
 
     if (strlen(replybuffer) < 50 ) {
       DEBUG_PRINT(F("#not enough input "));
-      DEBUG_PRINTLN(strlen(gpsdata));
+      DEBUG_PRINTLN(strlen(replybuffer));
       DEBUG_PRINT(F("#"));
-      DEBUG_PRINTLN(gpsdata);
+      DEBUG_PRINTLN(replybuffer);
       return;
     }
 
@@ -382,8 +382,9 @@ void fona_checkSMS() {
               INFO_PRINTLN(F("#turn Tracking ON"));
               //fona.sendSMS(callerIDbuffer, "Tracking ON");
               if (fona_tracking_on()) {
-                sprintf(replybuffer, PSTR("Tracking ON"));
+                //sprintf(replybuffer, PSTR("Tracking ON"));
                 fona_track();
+                sprintf(replybuffer, PSTR("Tracking ON"));
                 //replybuffer = "Tracking ON";
               }
               else {
@@ -482,16 +483,20 @@ boolean fona_tracking_on() {
   //fona.setHTTPSRedirect(true);
 
 
-  delay(2000);
+  //delay(2000);
   // turn GPRS on
 
   if (!fona.enableGPRS(true)) {
     INFO_PRINTLN(F("#Failed to turn on GPRS"));
     delay(2000);
-    /*if (!fona.enableGPRS(true)) {
-      INFO_PRINTLN(F("#Failed to turn on GPRS"));
+    if (!fona.enableGPRS(true)) {
+      INFO_PRINTLN(F("#Failed to turn on GPRS 2nd try"));
       delay(2000);
-    }*/
+      /*if (!fona.enableGPRS(true)) {
+        INFO_PRINTLN(F("#Failed to turn on GPRS"));
+        delay(2000);
+      }*/
+    }
   }
 
   uint16_t returncode;
@@ -622,7 +627,7 @@ void fona_battcheck() {
   if (! fona.getBattPercent(&fona_batt)) {
     INFO_PRINTLN(F("#Failed to read Batt"));
   } 
-  DEBUG_PRINT(F("Batt: "));
+  DEBUG_PRINT(F("#Batt: "));
   DEBUG_PRINTLN(fona_batt);
   if (fona_batt > 0 ) {
     if (fona_batt < 20 ) {
@@ -681,7 +686,7 @@ void fona_gps_status() {
     Serial.print(F(","));
     Serial.print(gps_distance, DEC);
     Serial.print(F(","));
-    Serial.print(board_voltage, 1);
+    Serial.print(bord_voltage, 1);
     Serial.print(F(","));
     Serial.print(engine_running_total, DEC);
     Serial.print(F("...#freeRam:"));
@@ -693,9 +698,9 @@ void fona_gps_status() {
 }
 
 void fona_calculate_statistics() {
-  #ifdef DEBUG
-  Serial.println(F("#fona_calculate_statistics()"));
-  #endif
+  //#ifdef DEBUG
+  TRACE_PRINTLN(F("#fona_calculate_statistics()"));
+  //#endif
   // calculating speed
   if ( gps_speed_max < gps_speed ) gps_speed_max = gps_speed;
   if ( gps_speed_max_trip < gps_speed ) gps_speed_max_trip = gps_speed;

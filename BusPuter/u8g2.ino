@@ -16,8 +16,7 @@
 #ifdef LCD
 
 
-#define Xpos 0
-#define Ypos 14
+
 
 //Menu defination
 #define MENU_clock 1
@@ -26,24 +25,26 @@
 #define MENU_gpsinfo 4
 #define MENU_power 5
 #define MENU_sdcard 6
-#define MENU_info 7
+#define MENU_water_temp 7
+#define MENU_clima 8
+#define MENU_info 9
 #define MENU_
-#define MENU_
+#define MENU_custom 10
 
 
 //Menü Definationen old
-#define MaxMENU 7
-#define MENU1 menu_uhr
-#define MENU2 menu_speed
-#define MENU3 menu_gpsinfos // jump to SubMenu3
-#define MENU4 menu_power
-#define MENU5 menu_speedinfos
-#define MENU6 menu_trip
-#define MENU7 menu_sdcard
+//#define MaxMENU 7
+//#define MENU1 menu_uhr
+//#define MENU2 menu_speed
+//#define MENU3 menu_gpsinfos // jump to SubMenu3
+//#define MENU4 menu_power
+//#define MENU5 menu_speedinfos
+//#define MENU6 menu_trip
+//#define MENU7 menu_sdcard
 
-#define MaxEndMENU 1
+//#define MaxEndMENU 1
 //#define EndMENU1 menu_dimmer
-#define EndMENU1 menu_info // jump to SubMenu1
+//#define EndMENU1 menu_info // jump to SubMenu1
 
 #define SubMenu1Nr 101
 #define SubMenu1 menu_sub_1
@@ -53,25 +54,11 @@
 #define SubMenu3 menu_gpsinfos_sub1
 
 
-/*
-   https://github.com/olikraus/u8glib/wiki/fontsize
-   ACHTUNG: Fonts brauchen sehr viel Platz!!!
-*/
-
-#define small_font u8g2_font_profont10_tf //2311
-#define medium_font u8g2_font_profont12_tf //2311
-#define big_font u8g2_font_profont29_mn //2719
 
 int last_menu = 0;
 
 //#ifdef LCD
-//Software SPI
-//U8G2_UC1701_EA_DOGS102_1_4W_SW_SPI u8g2(U8G2_R0, /* clock=*/ 13, /* data=*/ 11, /* cs=*/ 10, /* dc=*/ 9, /* reset=*/ 8);
-//Hardware SPI
-U8G2_UC1701_EA_DOGS102_1_4W_HW_SPI u8g2(U8G2_R0, LCD_CLOCK, LCD_DATA);
 
-//U8G2_ST7565_EA_DOGM128_1_4W_SW_SPI u8g2(U8G2_R0, /* clock=*/ 13, /* data=*/ 11, /* cs=*/ 10, /* dc=*/ 9, /* reset=*/ 8);
-//U8G2_ST7565_EA_DOGM128_1_4W_HW_SPI u8g2(U8G2_R0, 12, 13);
 //#endif
 
 void init_display(void) {
@@ -83,6 +70,9 @@ void init_display(void) {
     pinMode(LCD_LED, OUTPUT);
     analogWrite(LCD_LED, 128);
     SPI_lock = false;
+
+    digitalWrite(DIMMER, HIGH);
+    
   }
 //#endif
 }
@@ -90,25 +80,21 @@ void init_display(void) {
 
 void display_loop() {
   //TRACE_PRINTLN(F("#->display_loop"));
-  //if ( lcd_update_timer < millis() ) {
-    //Serial.println(F("#it's time for display update"));
-    //lcd_update_timer = millis() + LCD_UPDATE_TIMER;
-    if ( !lcd_update_timer_lock ) {
-      if ( !SPI_lock ) {
-        SPI_lock = true;
-        lcd_update_timer_lock = true;
-        display_update();
-        lcd_update_timer_lock = false;
-        SPI_lock = false;
-      } else {
-        //DEBUG_PRINTLN(F("#SPI Bus locked"));
-        //Serial.println(F("#SPI Bus locked"));
-      }
+  if ( !lcd_update_timer_lock ) {
+    if ( !SPI_lock ) {
+      SPI_lock = true;
+      lcd_update_timer_lock = true;
+      display_update();
+      lcd_update_timer_lock = false;
+      SPI_lock = false;
+    } else {
+      TRACE_PRINTLN(F("#SPI Bus locked"));
+      //Serial.println(F("#SPI Bus locked"));
     }
-    else {
-      Serial.println(F("#display update locked..."));
-    }
-  //}
+  }
+  else {
+    TRACE_PRINTLN(F("#display update locked..."));
+  }
 }
 
 
@@ -124,18 +110,6 @@ void draw(void) {
   u8g2.setFontPosTop();
   u8g2.setCursor(Xpos, Ypos);
 
-  /*if (button_1 == 1 ) {
-    //  MainMenuPos++;
-    if ((MainMenuPos >= 90+MaxEndMENU) && (MainMenuPos < 100)) {
-      MainMenuPos = 1;
-    }
-    else if ((MainMenuPos >= MaxMENU+1) && (MainMenuPos < 90)) {
-      MainMenuPos = 90;
-    }
-
-    //button_1 = 0;
-    }*/
-
   switch (MainMenuPos) {
     case 0: bootscreen(); break;
     case MENU_clock: menu_clock(); break; // 1
@@ -144,57 +118,74 @@ void draw(void) {
     case MENU_gpsinfo: menu_gpsinfos(); break; // 4
     case MENU_power: menu_power(); break; // 5
     case MENU_sdcard: menu_sdcard(); break; // 6
-    case MENU_info: menu_info(); break; // 7
+    case MENU_water_temp: menu_water_temp(); break; // 7
+    case MENU_clima: menu_clima(); break; // 8
+    case MENU_info: menu_info(); break; // 8
     
-/*#ifdef MENU3
-    case 3: MENU3(); break;
-#endif
-#ifdef MENU4
-    case 4: MENU4(); break;
-#endif
-#ifdef MENU5
-    case 5: MENU5(); break;
-#endif
-#ifdef MENU6
-    case 6: MENU6(); break;
-#endif
-#ifdef MENU7
-    case 7: MENU7(); break;
-#endif
-#ifdef MENU8
-    case 8: MENU8(); break;
-#endif
+    #ifdef CUSTOM
+    case MENU_custom: custom_menu(); break; // display the custom menu
+    #endif // CUSTOM
 
-#ifdef EndMENU1
-    case 90: EndMENU1(); break;
-#endif
-
-#ifdef SubMenu1
-    case SubMenu1Nr: SubMenu1(); break;
-#endif
-#ifdef SubMenu2
-    case SubMenu2Nr: SubMenu2(); break;
-#endif
-#ifdef SubMenu3
-    case SubMenu3Nr: SubMenu3(); break;
-#endif*/
-    //default: MainMenuPos = last_menu;
     default: {
-        menu_clock();
-        MainMenuPos = 1;
-        break;
-      }
+      menu_clock();
+      MainMenuPos = 1;
+      break;
+    }
   }
 }
 
 void display_update(void) {
-//#ifdef LCD
+  //int dimmer = 0;
   // picture loop
   u8g2.firstPage();
   do {
     draw();
   } while ( u8g2.nextPage() );
-//#endif
+
+/*
+  //calculate Dimmer
+  dimmer = analogRead(DIMMER);
+  dimmer *= 15.2; // convert to mV
+  //Serial.println(dimmer);
+  dimmer -= DIMMER_MIN_mV;
+  //Serial.println(dimmer);
+
+  //int dimmer_ranger = DIMMER_MAX_mV - DIMMER_MIN_mV;
+  int dimmer_pct = ((100000 / (DIMMER_MAX_mV - DIMMER_MIN_mV)) * dimmer) / 1000;
+  //Serial.println(dimmer_pct);
+
+  
+  if ( dimmer_pct < 0 ) dimmer_pct= 0;
+
+  int lcd_led = LCD_LED_MIN + (((LCD_LED_MAX - LCD_LED_MIN) / 10 ) * float(dimmer_pct)/10) ;
+  //Serial.println(lcd_led);
+  if ( dimmer_pct > 100 ) lcd_led = LCD_LED_MAX;
+  analogWrite(LCD_LED, lcd_led); 
+
+*/
+}
+
+void display_set_led() {
+  int mood = 0;
+  
+  //calculate Dimmer
+  mood = analogRead(DIMMER);
+  mood *= 15.2; // convert to mV
+  //Serial.println(dimmer);
+  mood -= DIMMER_MIN_mV;
+  //Serial.println(dimmer);
+
+  //int dimmer_ranger = DIMMER_MAX_mV - DIMMER_MIN_mV;
+  int mood_pct = ((100000 / (DIMMER_MAX_mV - DIMMER_MIN_mV)) * mood) / 1000;
+  //Serial.println(dimmer_pct);
+
+  
+  if ( mood_pct < 0 ) mood_pct= 0;
+
+  int lcd_led = LCD_LED_MIN + (((LCD_LED_MAX - LCD_LED_MIN) / 10 ) * float(mood_pct)/10) ;
+  //Serial.println(lcd_led);
+  if ( mood_pct > 100 ) lcd_led = LCD_LED_MAX;
+  analogWrite(LCD_LED, lcd_led); 
 }
 
 
@@ -464,6 +455,99 @@ void menu_sdcard() {
   #endif //SDCARD
 }
 
+void menu_clima() {
+  char buf[24];
+  int m = 0;
+
+  u8g2.setFont(small_font);
+  u8g2.setFontPosTop();
+  u8g2.setCursor(Xpos, Ypos);
+  u8g2.print(F("Klima:"));
+
+  #ifdef TEMPERATURE_OUT
+  u8g2.setCursor(Xpos, Ypos + 8);
+  u8g2.print(F("Aussen: "));
+ 
+  //uint16_t m = temp_out * 10;
+  m = temp_out - ( temp_out/10 ) * 10;
+  sprintf (buf, "%02d.%1d", temp_out/10, m);
+  u8g2.print(buf);
+  u8g2.print(F("\xb0"));
+  #endif // TEMP_OUT
+  
+  #ifdef HUMIDITY_OUT
+  u8g2.print(F(" ("));
+  sprintf (buf, "%02d", hum_out);
+  u8g2.print(buf);
+  u8g2.print(F("%)"));
+  #endif // HUMIDITY_OUT
+  
+  #ifdef TEMPERATURE_IN
+  u8g2.setCursor(Xpos, Ypos + 16);
+  u8g2.print(F("Innen : "));
+  
+  m = temp_in - ( temp_in/10 ) * 10;
+  sprintf (buf, "%02d.%1d", temp_in/10, m);
+  u8g2.print(buf);
+  u8g2.print(F("\xb0"));
+  #endif // TEMP_IN
+  
+  #ifdef HUMIDITY_IN
+  u8g2.print(F(" ("));
+  sprintf (buf, "%02d", hum_in);
+  u8g2.print(buf);
+  u8g2.print(F("%)"));
+  #endif // HUMIDITY_IN
+
+
+  
+  
+
+  switch (button_1) {
+    case 1: MainMenuPos++; break;
+      //case 2: MainMenuPos = SubMenu3Nr; break;
+  }
+  button_1 = 0;
+  //#else //FONA
+  //MainMenuPos++;
+  //#endif //FONA
+}
+
+void menu_water_temp() {
+  #ifdef VW_WATER_TEMP
+  char buf[24];
+  u8g2.setFont(small_font);
+  u8g2.setFontPosTop();
+  u8g2.setCursor(Xpos, Ypos);
+  u8g2.print(F("Wasser Temperatur:"));
+
+  u8g2.setFont(big_font);
+  u8g2.setCursor(Xpos+16, Ypos+32);
+  //Temperature
+  //uint16_t m = temp_out - ( temp_out/10 ) * 10;
+  sprintf (buf, "%3d", water_temp);
+  //u8g2.print(F("\xb0:"));
+  u8g2.print(buf);
+  u8g2.setFont(medium_font);
+  u8g2.setCursor(Xpos+64, Ypos+22);
+  u8g2.print(F("\xb0"));
+  u8g2.print(F("C"));
+
+  //u8g2.setCursor(Xpos, Ypos+16);
+  //u8g2.print(water_temp_V, 1);
+  //u8g2.print(F(" mV"));
+
+  switch (button_1) {
+    case 1: MainMenuPos++; break;
+      //case 2: MainMenuPos = SubMenu3Nr; break;
+  }
+  button_1 = 0;
+  #else //VW_WATER_TEMP
+  MainMenuPos++;
+  #endif //VW_WATER_TEMP
+  
+  
+}
 void menu_gpsinfos_sub1() {
   #ifdef FONA
   char buf[24];
@@ -495,17 +579,19 @@ void menu_gpsinfos_sub1() {
   button_1 = 0;
   #endif // FONA
 }
+
+
 void menu_power() {
   char buf[24];
 
   u8g2.setFont(small_font);
   u8g2.setFontPosTop();
   u8g2.setCursor(Xpos, Ypos);
-  u8g2.print(F("Boardspannung:"));
+  u8g2.print(F("Bordspannung:"));
   u8g2.setFont(big_font);
   u8g2.setFontPosTop();
   u8g2.setCursor(Xpos + 10, Ypos + 10);
-  u8g2.print(board_voltage, 1);
+  u8g2.print(bord_voltage, 1);
   u8g2.setFont(medium_font);
   u8g2.setFontPosTop();
   u8g2.setCursor(Xpos + 80, Ypos + 20);
@@ -529,7 +615,7 @@ void menu_dimmer() {
   u8g2.setCursor(Xpos, Ypos + 10);
   u8g2.print(F("Hold Button to change"));
   //sprintf(buf, "%4d%V", X_pin);
-  u8g2.print(board_voltage, 2);
+  u8g2.print(bord_voltage, 2);
   u8g2.setCursor(Xpos, Ypos + 16);
 
   switch (button_1) {
@@ -544,7 +630,7 @@ void menu_info() {
   u8g2.setFont(small_font);
   u8g2.setFontPosTop();
   u8g2.setCursor(Xpos, Ypos);
-  u8g2.print(F("T3 Board Computer"));
+  u8g2.print(F("T3 bord Computer"));
   u8g2.setCursor(Xpos, Ypos + 8);
   u8g2.print(F("Designed by Brun"));
   u8g2.setCursor(Xpos, Ypos + 16);
@@ -564,7 +650,7 @@ void menu_info() {
     }*/
 
   switch (button_1) {
-    case 1: MainMenuPos = 1; break;
+    case 1: MainMenuPos++; break;
     case 2: MainMenuPos--; break;
   }
   button_1 = 0;

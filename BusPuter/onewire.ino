@@ -1,0 +1,36 @@
+/***************************************************
+ *  This sketch is for OneWire functions.
+ *  http://www.hobbytronics.co.uk/ds18b20-arduino
+ *
+ *  Author: Brun
+ *  
+ ****************************************************/
+
+#ifdef ONEWIRE
+
+
+void onewire_init() {
+  display_bootmsg(F("Init OneWire"));
+  
+}
+
+void onewire_loop() {
+  if ( onewire_timer < millis() ) {
+    
+    onewire_timer = millis() + ONEWIRE_TIMER;
+
+    sensors.requestTemperatures(); // Send the command to get temperatures
+
+    #ifdef DS18B20_AS_OUT
+    temp_out = (sensors.getTempCByIndex(0) * 10);
+    #endif
+
+    #ifdef DS18B20_AS_IN
+    temp_in = (sensors.getTempCByIndex(0) * 10);
+    #endif
+  }
+}
+
+
+#endif
+
