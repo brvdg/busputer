@@ -9,10 +9,73 @@
  *  
  ****************************************************/
 
-
-
-
 #ifdef FONA
+
+
+//#define SMS_Commands //???
+#define SPEED //this enables speedinformations
+
+//#ifdef FONA
+#include "Adafruit_FONA.h"
+
+
+#ifdef ARDUINO_ARCH_SAMD
+//#include <avr/dtostrf.h>
+HardwareSerial *fonaSerial = &Serial1;
+Adafruit_FONA fona = Adafruit_FONA(FONA_RST);
+#else //ARDUINO_ARCH_SAMD
+//#include <stdlib.h>
+#define FONA_RX 2
+#define FONA_TX 3
+#define FONA_RST 4
+#include <SoftwareSerial.h>
+SoftwareSerial fonaSS = SoftwareSerial(FONA_TX, FONA_RX);
+SoftwareSerial *fonaSerial = &fonaSS;
+Adafruit_FONA fona = Adafruit_FONA(FONA_RST);
+#endif //ARDUINO_ARCH_SAMD
+
+//#define FONA_LOOP_TIME 10000 // 1s ???
+#define FONA_GPS_TIMER 1000 // 1s
+#define FONA_SMS_TIMER 5000 // 5s
+#define FONA_BATT_TIMER 30000 // 30s
+#define FONA_GPS_STATUS_TIMER 3000 // 3s
+//Fona Variablen
+unsigned long fona_gps_timer = 0;
+unsigned long fona_sms_timer = 0;
+unsigned long fona_batt_timer = 0;
+unsigned long fona_gps_status_timer = 0;
+boolean battstatus_send = false;
+
+//SMS Alarm
+boolean alarm_active = false;
+char alarm_activator[32]; //number who activates the alarm
+boolean alarmtatus_send = false;
+
+
+
+
+String str_mode;
+String str_fixstatus;
+String str_utctime;
+String str_latitude;
+String str_longitude;
+String str_altitude;
+String str_speed;
+String str_course;
+String str_view_satellites;
+String str_used_satellites;
+
+String str_year;
+String str_month;
+String str_day;
+String str_hour;
+String str_minute;
+String str_second;
+char utc_time[15];
+
+
+//uint32_t gprs_lasttrack = 0; //???
+
 
 void fona_init() {
   #ifdef FONA

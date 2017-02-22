@@ -43,7 +43,7 @@ void custom_loop() {
 void custom_menu() {
   char buf[24];
 
-  u8g2.setFont(small_font);
+/*  u8g2.setFont(small_font);
   u8g2.setFontPosTop();
   u8g2.setCursor(Xpos, Ypos);
   u8g2.print(F("User defined Men\xfc")); // \xfc = ü
@@ -52,7 +52,7 @@ void custom_menu() {
   u8g2.print(F("This is a"));
   u8g2.setCursor(Xpos, Ypos+16);
   u8g2.print(F("selbstgemachtes Men\xfc"));
-
+*/
 
   // this is needed to reackt on the button action
   switch (button_1) {

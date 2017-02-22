@@ -6,7 +6,25 @@
  ****************************************************/
 
 #ifdef I2C
+#include <Wire.h>
 
+#define I2C_TIMER 1000 // 200ms
+unsigned long i2c_timer = 0;
+
+
+#ifdef SI7021
+double si7021_temperature;
+double si7021_humidity;
+#endif // SI7021
+
+#ifdef SI7021_AS_IN
+#define TEMPERATURE_IN
+#define HUMIDITY_IN
+#endif // SI7021_AS_IN
+#ifdef SI7021_AS_OUT
+#define TEMPERATURE_OUT
+#define HUMIDITY_OUT
+#endif // SI7021_AS_OUT
 
 
 //const int ADDR =0x40;
@@ -15,9 +33,51 @@ double X,Y,X_out,Y_out1,Y_out2;
 
 
 void i2c_init() {
-  //INFO_PRINTLN(F("#si7021_init"));
+  TRACE_PRINTLN(F("#i2c_init"));
   display_bootmsg(F("Init I2C"));
+
+
+  byte error, address;
+  int nDevices;
+
+  Serial.println("Scanning...");
+
   Wire.begin();
+  delay(100);
+
+  nDevices = 0;
+  for(address = 1; address < 127; address++ ) 
+  {
+    // The i2c_scanner uses the return value of
+    // the Write.endTransmisstion to see if
+    // a device did acknowledge to the address.
+    Wire.beginTransmission(address);
+    error = Wire.endTransmission();
+
+    if (error == 0)
+    {
+      Serial.print("I2C device found at address 0x");
+      if (address<16) 
+        Serial.print("0");
+      Serial.print(address,HEX);
+      Serial.println("  !");
+
+      nDevices++;
+    }
+    else if (error==4) 
+    {
+      Serial.print("Unknow error at address 0x");
+      if (address<16) 
+        Serial.print("0");
+      Serial.println(address,HEX);
+    }    
+  }
+  if (nDevices == 0)
+    Serial.println("No I2C devices found\n");
+  else
+    Serial.println("done\n");
+  
+  //Wire.begin();
   delay(100);
 
   #ifdef SI7021

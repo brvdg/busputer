@@ -1,3 +1,9 @@
+
+Version 170222a
+- add OLED Display(SH1106 Chipset)
+- renaming some Sketchs
+- optimized Display functions
+
 Version 170125a
 
 - add I2C sensor SI7021

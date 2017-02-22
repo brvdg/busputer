@@ -6,10 +6,11 @@
  ****************************************************/
 
 void print_status() {
-  TRACE_PRINTLN(F("#print_task_callback()"));
   char buf[16];
 
   if ( print_status_timer < millis() ) {
+    TRACE_PRINTLN(F("#print_task_callback()"));
+  
     //Serial.println(F("#it's time for gps"));
     print_status_timer = millis() + PRINT_STATUS_TIMER;
 

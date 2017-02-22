@@ -7,7 +7,7 @@
  ****************************************************/
 
 
-#define VERSION "Beta170129a"
+#define VERSION "Beta170222a"
 
 // include configuration file
 #include "config.h"
@@ -100,11 +100,12 @@ void setup() {
   Serial.println( F(__VERSION__));
   
   /*
-   * LCD Display
+   * Display
    */
-  #ifdef LCD
-  init_display();
+  #ifdef DISPLAY
+  display_init();
   #endif
+
 
   display_bootmsg(F("Booting..."));
   
@@ -118,7 +119,7 @@ void setup() {
 
   analog_init();
   
-  digitalWrite(X_Kontakt, HIGH);
+  //digitalWrite(X_Kontakt, HIGH);
   //digitalWrite(DIMMER, HIGH);
   pinMode(BUTTON_PIN_1, INPUT_PULLUP);
 
@@ -199,10 +200,10 @@ void setup() {
   Serial.println(" milliseconds!");
   #endif
   
-  #ifdef LCD  
+  #ifdef DISPLAY 
   MainMenuPos = 1;
   #endif //LCD
-
+  
   display_bootmsg(F("Ready"));
 
   /*
@@ -276,11 +277,6 @@ void loop() {
   fona_loop();
   #endif
 
-  //#ifdef LCD
-  //Serial.println("#DISPLAY");
-  //display_loop();
-  //#endif //LCD
-
   #ifdef ONEWIRE
   //Serial.println("#ONE WIRE");
   onewire_loop();
@@ -296,10 +292,10 @@ void loop() {
   vw_water_temp();
   #endif
 
-  #ifdef LCD
+  #ifdef DISPLAY
   //Serial.println("#DISPLAY");
   display_set_led();
-  #endif //LCD
+  #endif // DFISPLAY
 
   print_status();
 
@@ -312,7 +308,9 @@ void loop() {
 
   //Serial.print("+");
 
-  val = analogRead(X_Kontakt);
+  x_kontakt();
+
+/*  val = analogRead(X_Kontakt);
   bord_voltage = val * 0.0152;
   //Serial.print("BOARD VOLTAGE : ");
   //Serial.println(bord_voltage);
@@ -330,7 +328,7 @@ void loop() {
     #ifdef FONA
     //alarmtatus_send = false;
     #endif // FONA
-  }
+  }*/
 
 
 }
@@ -347,13 +345,12 @@ void TC3_Handler()
     //Serial.print(".");
     TC->INTFLAG.bit.OVF = 1;    // writing a one clears the flag ovf flag
     
-    #ifdef LCD
-    if ( lcd_update_timer < millis() ) {
-      //Serial.println(F("#it's time for display update"));
-      lcd_update_timer = millis() + LCD_UPDATE_TIMER;
+    #ifdef DISPLAY
+    if ( display_update_timer < millis() ) {
+      display_update_timer = millis() + DISPLAY_UPDATE_TIMER;
       display_loop();
     }
-    #endif //LCD
+    #endif // DISPLAY
 
     button();
   }

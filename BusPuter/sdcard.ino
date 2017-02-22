@@ -18,7 +18,7 @@ void enable_sdcard() {
       display_bootmsg(F("Init SD Card"));
       // initialize the SD card at SPI_HALF_SPEED to avoid bus errors with
       // breadbords.  use SPI_FULL_SPEED for better performance.
-      if (!SD.cardBegin(cardSelect, SPI_FULL_SPEED)) {
+      if (!SD.cardBegin(SD_CS, SPI_FULL_SPEED)) {
         display_bootmsg(F("cardBegin failed"));
         delay(500);
         //return;
@@ -123,7 +123,7 @@ void dump_sd_card() {
   TRACE_PRINTLN(F("#->dump_sd_card"));
   
   display_bootmsg(F("Init SD Card"));
-  if (!SD.begin(cardSelect)) {
+  if (!SD.begin(SD_CS)) {
     display_bootmsg(F("Card init. failed!"));
   }
 

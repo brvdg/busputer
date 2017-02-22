@@ -11,12 +11,9 @@
  ****************************************************/
 
 
-
+#ifdef DISPLAY
 #ifdef ARDUINO_ARCH_SAMD
-#ifdef LCD
-
-
-
+#ifdef DOGS102
 
 //Menu defination
 #define MENU_clock 1
@@ -32,20 +29,6 @@
 #define MENU_custom 10
 
 
-//Menü Definationen old
-//#define MaxMENU 7
-//#define MENU1 menu_uhr
-//#define MENU2 menu_speed
-//#define MENU3 menu_gpsinfos // jump to SubMenu3
-//#define MENU4 menu_power
-//#define MENU5 menu_speedinfos
-//#define MENU6 menu_trip
-//#define MENU7 menu_sdcard
-
-//#define MaxEndMENU 1
-//#define EndMENU1 menu_dimmer
-//#define EndMENU1 menu_info // jump to SubMenu1
-
 #define SubMenu1Nr 101
 #define SubMenu1 menu_sub_1
 #define SubMenu2Nr 102
@@ -55,58 +38,41 @@
 
 
 
+/*
+ *  https://github.com/olikraus/u8glib/wiki/fontsize
+ *  ATTENTION!!! Fonts need space
+ */
+
+#define small_font u8g2_font_profont10_tf //2311
+#define medium_font u8g2_font_profont12_tf //2311
+#define big_font u8g2_font_profont29_mn //2719
+
+// this defines the starting possition.
+#define Xpos 0
+#define Ypos 16
+
+
 int last_menu = 0;
 
-//#ifdef LCD
 
-//#endif
-
-void init_display(void) {
-//#ifdef LCD
+void display_init(void) {
   if ( !SPI_lock ) {
     SPI_lock = true;
     u8g2.begin();
     //u8g2.setContrast(220);
-    pinMode(LCD_LED, OUTPUT);
-    analogWrite(LCD_LED, 128);
+    pinMode(DISPLAY_BG_LED, OUTPUT);
+    analogWrite(DISPLAY_BG_LED, 128);
     SPI_lock = false;
 
     digitalWrite(DIMMER, HIGH);
     
   }
-//#endif
 }
 
+void display_draw(void) {
 
-void display_loop() {
-  //TRACE_PRINTLN(F("#->display_loop"));
-  if ( !lcd_update_timer_lock ) {
-    if ( !SPI_lock ) {
-      SPI_lock = true;
-      lcd_update_timer_lock = true;
-      display_update();
-      lcd_update_timer_lock = false;
-      SPI_lock = false;
-    } else {
-      TRACE_PRINTLN(F("#SPI Bus locked"));
-      //Serial.println(F("#SPI Bus locked"));
-    }
-  }
-  else {
-    TRACE_PRINTLN(F("#display update locked..."));
-  }
-}
-
-
-
-void draw(void) {
-  //TRACE_PRINTLN(F("#->draw"));
-  char buf[24];
-  
-
-  // graphic commands to redraw the complete screen should be placed here
   u8g2.setFont(small_font);
-
+  
   u8g2.setFontPosTop();
   u8g2.setCursor(Xpos, Ypos);
 
@@ -134,36 +100,6 @@ void draw(void) {
   }
 }
 
-void display_update(void) {
-  //int dimmer = 0;
-  // picture loop
-  u8g2.firstPage();
-  do {
-    draw();
-  } while ( u8g2.nextPage() );
-
-/*
-  //calculate Dimmer
-  dimmer = analogRead(DIMMER);
-  dimmer *= 15.2; // convert to mV
-  //Serial.println(dimmer);
-  dimmer -= DIMMER_MIN_mV;
-  //Serial.println(dimmer);
-
-  //int dimmer_ranger = DIMMER_MAX_mV - DIMMER_MIN_mV;
-  int dimmer_pct = ((100000 / (DIMMER_MAX_mV - DIMMER_MIN_mV)) * dimmer) / 1000;
-  //Serial.println(dimmer_pct);
-
-  
-  if ( dimmer_pct < 0 ) dimmer_pct= 0;
-
-  int lcd_led = LCD_LED_MIN + (((LCD_LED_MAX - LCD_LED_MIN) / 10 ) * float(dimmer_pct)/10) ;
-  //Serial.println(lcd_led);
-  if ( dimmer_pct > 100 ) lcd_led = LCD_LED_MAX;
-  analogWrite(LCD_LED, lcd_led); 
-
-*/
-}
 
 void display_set_led() {
   int mood = 0;
@@ -182,10 +118,10 @@ void display_set_led() {
   
   if ( mood_pct < 0 ) mood_pct= 0;
 
-  int lcd_led = LCD_LED_MIN + (((LCD_LED_MAX - LCD_LED_MIN) / 10 ) * float(mood_pct)/10) ;
+  int led = DOGS102_LED_MIN + (((DOGS102_LED_MAX - DOGS102_LED_MIN) / 10 ) * float(mood_pct)/10) ;
   //Serial.println(lcd_led);
-  if ( mood_pct > 100 ) lcd_led = LCD_LED_MAX;
-  analogWrite(LCD_LED, lcd_led); 
+  if ( mood_pct > 100 ) led = DOGS102_LED_MAX;
+  analogWrite(DISPLAY_BG_LED, led); 
 }
 
 
@@ -194,11 +130,13 @@ void display_set_led() {
  * Display MENUs
  */
 void bootscreen() {
+  //TRACE_PRINTLN(F("#->bootscreen"));
   //u8g.drawXBMP( 48, 0, vw_width, vw_height, vw_bits);
   u8g2.setFontPosTop();
   //u8g2.setCursor(24, 0);
   u8g2.setCursor(Xpos, Ypos);
   u8g2.print(bootmsg1);
+  //TRACE_PRINTLN(bootmsg1);
   u8g2.setCursor(Xpos, Ypos + 8);
   u8g2.print(bootmsg2);
   u8g2.setCursor(Xpos, Ypos + 16);
@@ -686,31 +624,8 @@ void menu_sub_2() {
 }
 
 
-void display_bootmsg(String msg) {
-  bootmsg1 = bootmsg2;
-  bootmsg2 = bootmsg3;
-  bootmsg3 = msg;
 
-  //bootmsg = "Waiting for Serial";
-  display_update();
 
-  INFO_PRINT(F("#"));
-  INFO_PRINTLN(msg);
-}
-
-#else //LCD
-/*void init_display(void) {
-  //empty funktion to disable the LCD insted to use "#ifdef LCD" in the code
-  }*/
-
-/*void display_update(void) {
-  //empty funktion to disable the LCD insted to use "#ifdef LCD" in the code
-  }*/
-
-void display_bootmsg(String msg) {
-  INFO_PRINT(F("#"));
-  INFO_PRINTLN(msg);
-}
-
-#endif //LCD
+#endif // DOGS102
 #endif // ARDUINO_ARCH_SAMD
+#endif // DISPLAY

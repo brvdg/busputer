@@ -8,6 +8,14 @@
 
 #ifdef ONEWIRE
 
+#include <DallasTemperature.h>
+OneWire oneWire(ONE_WIRE_BUS);
+DallasTemperature sensors(&oneWire);
+
+#define ONEWIRE_TIMER 500 // 5s
+unsigned long onewire_timer = 0;
+
+
 
 void onewire_init() {
   display_bootmsg(F("Init OneWire"));
