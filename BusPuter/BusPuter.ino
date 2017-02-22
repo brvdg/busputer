@@ -7,7 +7,7 @@
  ****************************************************/
 
 
-#define VERSION "Beta170222a"
+#define VERSION "Beta170222b"
 
 // include configuration file
 #include "config.h"
