@@ -4,290 +4,176 @@
  * https://github.com/brvdg/busputer/wiki
  ****************************************************/
 
-// Display Configuration
-#define DISPLAY
-//#define LCD
-//#define LCD_LED_MAX 255
-//#define LCD_LED_MIN 20
-
-//#define DOGS102
-//#define DOGS102_LED_MAX 255
-//#define DOGS102_LED_MIN 20
-#define OLED
-
-// SD Card
-#define SDCARD
-
-// Fona Configuration
-#define FONA
-
-#define SMS_Keyword "PWD"
-#define MyNumber "+49171123456789"
-// enable Internet tracking
-//#define tracking  // ???
-//#define tracking_ON // enable permanent tracking ???
-#define GPRS_APN "internet.t-mobile"
-#define GPRS_user "t-mobile"
-#define GPRS_pw "tm"
-#define TRACKING_URL "url.to.track/gps.php?visor=false&latitude=%s&longitude=%s&altitude=%s&time=%s&satellites=%s&speedOTG=%s&course=%s"
-
-
-// for Dalles DS18B20 Temperatursensor
-#define ONEWIRE
-#define DS18B20_AS_OUT
-//#define DS18B20_AS_IN
-
-// I2S Sensors
-#define I2C
-#define SI7021
-#define SI7021_AS_IN
-//#define SI7021_AS_OUT
-
-// VW Tempsensorm
-#define VW_WATER_TEMP A2
-
-// enable Watchdog
-//#define WD
-
-// enable Debugging
-#define INFO
-//#define DEBUG
-//#define TRACE
-
-
-// add an offset to the real speed
-#define SPEED_OFFSET 5
-
-
-// define which funkction whil be used for default variables
-// Time
-#define GPS_TIME // use GPS Time as default time
-//#define DS1303_TIME //??
-//Speed
-#define GPS_SPEED
-//#define SPEEDPULE_SPEED
-// Distance
-#define GPS_DISTANCE
-//#define SPEEDPULSE_DISTANCE
-
-
-
-#if defined (GPS_TIME) && defined (DS1303_TIME)
-//#pragma message ( "Debug configuration - OK" )
-#error "Only one time source is possible"
-#endif
-
 /*
  * Hardware configuration
  */
 
-#define CUSTOMBOARD
+//#define CUSTOMBOARD
+//#define BUSPUTER_OLED_DEFAULT
+//#define BUSPUTER_DOGS_DEFAULT
 
+// Display Configuration
+#define U8G2_DISPLAY
+#define DOGS102
+//#define OLED
 
-/*
- * Custom defined Pin configuration
- */
-#ifdef CUSTOMBOARD
-// DISPLAY configuration
-//#define LCD_LED 11
-//#define LCD_CLOCK 12
-//#define LCD_DATA 13
+#ifdef U8G2_DISPLAY 
+#define U8G2_DISPLAY_BG_LED 10
+#define U8G2_DISPLAY_CS 11
+#define U8G2_DISPLAY_DC 12
+#define U8G2_DISPLAY_RST 10
 
-#define DISPLAY_BG_LED 11
-#define DISPLAY_CS 12
-#define DISPLAY_DC 13
-#define DISPLAY_RST 11
+#define DIMMER 2
+#define DIMMER_MAX_mV 13800
+#define DIMMER_MIN_mV 4000
+#define DIMMER_MAX 150
+#define DIMMER_MIN 20
 
+#endif // U8G2_DISPLAY
 
-// FONA
-#define FONA_RST 5
-
-//SD Card
+// SD Card
+//#define SDCARD
 #define SD_CS 4
 
-// OneWire
-#define ONE_WIRE_BUS 6
-//#define DS18B20
+
+//SIM808 configuration
+#define SIM808
+#define SIM_APN "Provider_APN"
+#define SIM_USER "Provider_USER"
+#define SIM_PASS "Provider_PASSWORD"
+#define SMS_Keyword "geheim"
+#define BLYNK_KEY "1234567890abc..."
+
+
+/* 
+ *  Temperature source
+ *  0 = disabled / auto
+ *  1 = OneWire
+ *  2 = SI7021
+ */
+#define TEMP_OUT_PORT 0
+
+/*
+ * Speed source
+ * 0 = Speedpulse and GPS
+ * 1 = Speedpulse
+ * 2 = GPS
+ */
+#define SPEEDSOURCE 2
+// Speedpulse Port
+#define SPEEDPULSE_PORT 6
+#define SPEEDPULSEARRAY 25
+
+
+// RPM gauge
+#define RPM_PORT 5
+#define RPM_MULTIPL 4.8594 // # cylinders
+
+// Water Temp gauge
+#define WATER_TEMP 4
+#define SERIESRESISTOR 50 // Ohm of the original gauge
+
+// Fuel gauge
+#define FUEL_GAUGE 3
+#define FUEL_GAUGERESISTOR 55
+#define FUEL_FULL 34
+#define FUEL_EMPTY 168
+#define FUEL_L 60
+
+// analog/digital input
+#define A0_MULTIPLICATOR 0.0152
+#define A1_MULTIPLICATOR 0.0152
+//#define A2_MULTIPLICATOR 0.0152
+//#define A3_MULTIPLICATOR 0.0152
+#define A2_MULTIPLICATOR 0.009765
+#define A3_MULTIPLICATOR 0.009765
 
 
 #define BUTTON_PIN_1 9
-#define X_Kontakt A1
-#define DIMMER A0
-#define DIMMER_MAX_mV 13800
-#define DIMMER_MIN_mV 7800
 
+#define ALARM_OUT
+#define ALARM_PORT 13 
+
+
+#define BORD_VOLTAGE_PORT 1
 
 #define FeatherLED8 8
 
-#endif // CUSTOMBOARD
+
+// for Dalles DS18B20 Temperatursensor
+#define ONEWIRE
+#define ONE_WIRE_BUS 6
+
+// I2S Sensors
+#define I2C
+#define SI7021
+
+// enable Debugging
+//#define OFFLINE // disable some functions for programming and testing
+#define INFO
+#define DEBUG
+//#define TRACE
+
+// print the status on serial port
+#define PRINT_STATUS
 
 
-/*
- * Display
- */
-#ifdef DISPLAY
-
-#include <U8g2lib.h>
-
-#define DISPLAY_UPDATE_TIMER 200 // 200ms
-unsigned long display_update_timer = 0;
-boolean display_update_timer_lock = false;
-
-int MainMenuPos = 0;
-
-#endif // DISPLAY
 
 
 
-/*
- * SD Card configuration
- */
-#ifdef SDCARD
-//#define cardSelect 4
-#define KMLLOG    //???
 
-//#include <SPI.h>
-//#include <SD.h>
-#include <SPI.h>
-#include "SdFat.h"
+// define which funkction whil be used for default variables
+// Time
+//#define GPS_TIME // use GPS Time as default time
+//#define DS3231_TIME //??
+//Speed
+//#ifdef FONA
+//#define GPS_SPEED
+//#endif // FONA
+//#define SPEEDPULE_SPEED
+// Distance
+//#define GPS_DISTANCE
+//#define SPEEDPULSE_DISTANCE
 
-SdFat SD;
-SdFile logfile;
 
-char filename[16];
-boolean SDmount = false;
-boolean SDerror = false;
-uint16_t lastfile = 0;
 
-#endif //SDCARD
+#if defined (DOGS102) && defined (OLED)
+#pragma message ( "Only one display can be configured" )
+#error "Only one display can be configured"
+#endif
 
-/*
- * FONA library
- */
-
-#ifdef FONA
-
-int8_t gps_fixstatus;
-int16_t gps_year;
-uint8_t gps_day;
-int8_t gps_month;
-int8_t gps_hour;
-int8_t gps_minute;
-int8_t gps_second;
-//float gps_date;
-uint8_t gps_speed;
-uint8_t gps_speed_max = 0;
-uint8_t gps_speed_max_trip = 0;
-uint8_t gps_speed_avg = 0;
-uint8_t gps_speed_avg_trip = 0;
-//uint8_t gps_speed_avg_start = 0;
-//uint8_t gps_speed_avg_today = 0;
-uint16_t gps_course;
-uint16_t gps_altitude;
-uint8_t gps_view_satellites;
-uint8_t gps_used_satellites;
-float gps_latitude, gps_longitude;
-float gps_latitude_old = 0;
-float gps_longitude_old = 0;
-float gps_latitude_lasttrack = 0;
-float gps_longitude_lasttrack = 0;
-float gps_latitude_lastlog = 0;
-float gps_longitude_lastlog = 0;
-boolean gps_success = false;
-boolean gps_fix = false;
-uint32_t gps_distance_trip = 0;
-uint32_t gps_distance = 0;
-//uint32_t gps_distance_start = 0;
-//uint32_t gps_distance_today = 0;
-
-boolean gprs_tracking = false;
-
-uint8_t fona_type;
-char fona_time[23];
-uint16_t fona_batt = 0;
-
-#endif // FONA
-
+#if defined (U8G2_DISPLAY_BG_LED) && defined (OLED)
+#pragma message ( "U8G2_DISPLAY_BG_LED and OLDE can't used together" )
+#error "U8G2_DISPLAY_BG_LED and OLED can't used together"
+#endif
 
 /*
- * DS18B20 Temperatursensor
- */
-#ifdef ONEWIRE
-
-#ifdef DS18B20_AS_IN
-#define TEMPERATURE_IN
-#endif // DS18B20_AS_IN
-#ifdef DS18B20_AS_OUT
-#define TEMPERATURE_OUT
-#endif // DS18B20_AS_OUT
-
-#endif // ONEWIRE
-
-
-/*
- * I2C Sensor
- */
-#ifdef I2C
-
-#endif // I2C
-
-/*
- * Analog Ports
+ * Timer for the seperate Tasks
  */
 
-int water_temp_V = 0; // Voltage of port
-int water_temp_ohm = 0;
-int water_temp = 0;
-
-/*
- *  Input/Output
- */
-
+#define U8G2_DISPLAY_UPDATE_TIMER 40 // 200ms
+#define PRINT_STATUS_TIMER 2000 //
+#define UPDATE_VARS_TIMER 200 // 200ms
 #define BUTTON_TIMER 200 // 200ms
-unsigned long button_timer = 0;
-bool button_timer_lock = false;
+#define I2C_TIMER 200 // 200ms
+#define ONEWIRE_TIMER 500 // 5s
+#define ANALOG_TIMER 1000 // 1000ms
+#define IO_TIMER 100 // 100ms
 
-uint8_t button_1 = 0;
-uint8_t button_1_low = 0;
-uint8_t button_1_high = 0;
-uint8_t button_1_double = 0;
-
-
-
-
-
+//#define FONA_LOOP_TIME 10000 // 1s ???
+//#define FONA_GPS_TIMER 1000 // 1s
+//#define FONA_SMS_TIMER 5000 // 5s
+//#define FONA_BATT_TIMER 30000 // 30s
+//#define FONA_GPS_STATUS_TIMER 3000 // 3s
 
 
-
-#ifdef INFO
- #define INFO_PRINT(x)  Serial.print (x)
- #define INFO_PRINTLN(x)  Serial.println (x)
-#else
- #define INFO_PRINT(x)
- #define INFO_PRINTLN(x)
-#endif
-#ifdef DEBUG
- #define DEBUG_PRINT(x)  Serial.print (x)
- #define DEBUG_PRINTLN(x)  Serial.println (x)
-#else
- #define DEBUG_PRINT(x)
- #define DEBUG_PRINTLN(x)
-#endif
-#ifdef TRACE
- #define TRACE_PRINT(x)  Serial.print (x)
- #define TRACE_PRINTLN(x)  Serial.println (x)
-#else
- #define TRACE_PRINT(x)
- #define TRACE_PRINTLN(x)
-#endif
+#define SIM808_GPS_TIMER 1000 // 1s
+#define SIM808_SMS_TIMER 5000 // 5s
+#define SIM808_BATT_TIMER 30000 // 30s
+#define SIM808_BLYNK_TIMER 5000 // 5s
+//#define SIM808_GPS_STATUS_TIMER 3000 // 3s
 
 
 
-/*
- * Compiler Checks
- */
-#if defined (GPS_TIME) && defined (DS1303_TIME)
-//#pragma message ( "Debug configuration - OK" )
-#error "Only one time source is possible"
-#endif
+
 

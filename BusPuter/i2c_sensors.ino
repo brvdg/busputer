@@ -8,14 +8,15 @@
 #ifdef I2C
 #include <Wire.h>
 
-#define I2C_TIMER 1000 // 200ms
-unsigned long i2c_timer = 0;
 
+unsigned long i2c_timer = 0;
 
 #ifdef SI7021
 double si7021_temperature;
 double si7021_humidity;
 #endif // SI7021
+
+
 
 #ifdef SI7021_AS_IN
 #define TEMPERATURE_IN
@@ -56,26 +57,48 @@ void i2c_init() {
 
     if (error == 0)
     {
-      Serial.print("I2C device found at address 0x");
+      INFO_PRINT(F("#I2C device found at address 0x"));
       if (address<16) 
-        Serial.print("0");
-      Serial.print(address,HEX);
-      Serial.println("  !");
+        INFO_PRINT("0");
+      INFO_PRINTHEX(address);
+      INFO_PRINTLN(F("  !"));
+
+      switch(address) {
+        case 64:
+          si7021_available = true;
+          INFO_PRINTLN(F("SI7021 found"));
+          delay(2000);
+          break;
+      }
 
       nDevices++;
     }
     else if (error==4) 
     {
-      Serial.print("Unknow error at address 0x");
+      INFO_PRINT(F("#Unknow error at address 0x"));
       if (address<16) 
-        Serial.print("0");
-      Serial.println(address,HEX);
+        INFO_PRINT("0");
+      INFO_PRINTHEX(address);
+      INFO_PRINTLN("  !");
     }    
   }
   if (nDevices == 0)
-    Serial.println("No I2C devices found\n");
+    DEBUG_PRINT(F("No I2C devices found\n"));
   else
-    Serial.println("done\n");
+    DEBUG_PRINT(F("done\n"));
+
+
+
+  if ( si7021_available ) {
+    if ( temp_out_port == 0 ) {
+      temp_out_port = 2;
+    }
+  }
+  else {
+    if ( temp_out_port == 2 ) {
+      temp_out_port = 0;
+    }
+  }
   
   //Wire.begin();
   delay(100);
@@ -84,7 +107,8 @@ void i2c_init() {
   Wire.beginTransmission(0x40);
   delay(200);
   #endif
-  
+
+   
   Wire.endTransmission();
 }
 
@@ -92,7 +116,15 @@ void i2c_loop() {
   if ( i2c_timer < millis() ) {
     // put your code here
 
-    i2c_get_si7021();
+    if ( !I2C_lock ) {
+      I2C_lock = true;
+      
+      #ifdef SI7021
+      if (si7021_available) i2c_get_si7021();
+      #endif // SI7021
+      
+      I2C_lock = false;
+    }
 
     i2c_timer = millis() + I2C_TIMER;
   }
@@ -101,7 +133,7 @@ void i2c_loop() {
 
 #ifdef SI7021
 void i2c_get_si7021() {
-  TRACE_PRINT(F("#si7021_loop"));
+  TRACE_PRINT(F("#i2c_get_si7021"));
   
 
   //Serial.println("START #1");
@@ -122,8 +154,10 @@ void i2c_get_si7021() {
     si7021_temperature = ((175.72*(t0+t1))/65536)-46.85;
   }
 
-  DEBUG_PRINT(F("#si7021_temperature: "));
-  DEBUG_PRINT(si7021_temperature);
+  TRACE_PRINT(F("#si7021_temperature: "));
+  TRACE_PRINT(si7021_temperature);
+
+  si7021_temp = si7021_temperature*10;
 
   // read humidity
   Wire.beginTransmission(0x40);                     
@@ -147,10 +181,12 @@ void i2c_get_si7021() {
     si7021_humidity = hd1+hd2-6;
   }
 
-  DEBUG_PRINT(F(", si7021_humidity: "));
-  DEBUG_PRINTLN(si7021_humidity);
+  TRACE_PRINT(F(", si7021_humidity: "));
+  TRACE_PRINTLN(si7021_humidity);
 
-  #ifdef SI7021_AS_IN
+  si7021_hum = si7021_humidity;
+
+  /*#ifdef SI7021_AS_IN
   temp_in = si7021_temperature*10;
   hum_in = si7021_humidity;
   #endif // SI7021_AS_IN
@@ -158,9 +194,11 @@ void i2c_get_si7021() {
   #ifdef SI7021_AS_OUT
   temp_out = si7021_temperature*10;
   hum_out = si7021_humidity;
-  #endif // SI7021_AS_IN
+  #endif // SI7021_AS_IN*/
   
 }
 #endif // SI7021
+
+
 #endif // I2C
 

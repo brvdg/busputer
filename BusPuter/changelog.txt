@@ -1,3 +1,8 @@
+Version 170811a
+- major changes
+This version is based on hardware version 0.8.
+It’s not tested with older hardware.
+
 
 Version 170222a
 - add OLED Display(SH1106 Chipset)

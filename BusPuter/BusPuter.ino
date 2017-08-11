@@ -7,79 +7,49 @@
  ****************************************************/
 
 
-#define VERSION "Beta170222b"
+#define VERSION "0.8"
+#define BUILD "1700811a"
 
 // include configuration file
 #include "config.h"
+#include "vars.h"
 
 
-//#include <Arduino.h>
-#include <Adafruit_SleepyDog.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdint.h>
-
-#ifdef ARDUINO_ARCH_SAMD
+#include <avr/pgmspace.h>
 #include <avr/dtostrf.h>
-#else //ARDUINO_ARCH_SAMD
-#include <stdlib.h>
-#endif //ARDUINO_ARCH_SAMD
-
-
-//uint8_t lcd_led_max = 200; //???
-
-//String bootmsg;
-String bootmsg1;
-String bootmsg2;
-String bootmsg3;
-
-
-float bord_voltage = 0;
-
-boolean running = false;
-
-
-int16_t year;
-uint8_t day;
-int8_t month;
-int8_t hour;
-int8_t minute;
-int8_t second;
-
-#define PRINT_STATUS_TIMER 2000 //
-unsigned long print_status_timer = 0;
-
-
-uint8_t engine_start_time_h = 0;
-uint8_t engine_start_time_min = 0;
-uint8_t engine_start_time_sec = 0;
-uint8_t engine_start_time_day = 0;
-uint8_t engine_start_time_month = 0;
-uint8_t engine_start_time_year = 0;
-uint8_t engine_stop_day = 0;
-long engine_running_sec = 0;
-long engine_running_total = 0;
-long engine_running_total_last = 0;
-//long engine_running_trip = 0;
-long engine_running_trip_last = 0;
-//long engine_running_sec_last_all = 0;
-//long engine_running_sec_last_today = 0;
-boolean engine_running = false;
 
 
 
 
-// Global Variables
-int16_t temp_out = -1000;
-int temp_in = -1000;
-int hum_in = 0;
-int hum_out = 0;
 
-// this is a large buffer for replies
-char replybuffer[255];
 
-boolean serial_export = true;
-boolean SPI_lock = false;
+#ifdef INFO
+ #define INFO_PRINT(x)  Serial.print (x)
+ #define INFO_PRINTLN(x)  Serial.println (x)
+ #define INFO_PRINTHEX(x)  Serial.print (x, HEX)
+#else
+ #define INFO_PRINT(x)
+ #define INFO_PRINTLN(x)
+ #define INFO_PRINTHEX(x)
+#endif
+#ifdef DEBUG
+ #define DEBUG_PRINT(x)  Serial.print (x)
+ #define DEBUG_PRINTLN(x)  Serial.println (x)
+#else
+ #define DEBUG_PRINT(x)
+ #define DEBUG_PRINTLN(x)
+#endif
+#ifdef TRACE
+ #define TRACE_PRINT(x)  Serial.print (x)
+ #define TRACE_PRINTLN(x)  Serial.println (x)
+#else
+ #define TRACE_PRINT(x)
+ #define TRACE_PRINTLN(x)
+#endif
+
 
 
 
@@ -99,10 +69,11 @@ void setup() {
   Serial.print( F(", "));
   Serial.println( F(__VERSION__));
   
+  
   /*
    * Display
    */
-  #ifdef DISPLAY
+  #ifdef U8G2_DISPLAY
   display_init();
   #endif
 
@@ -117,18 +88,18 @@ void setup() {
   digitalWrite(FeatherLED8, LOW);
   #endif //FeatherLED8
 
-  analog_init();
-  
-  //digitalWrite(X_Kontakt, HIGH);
-  //digitalWrite(DIMMER, HIGH);
+  IO_init();
+
+  // Button 
   pinMode(BUTTON_PIN_1, INPUT_PULLUP);
 
+  // Dumping SDCard
   if (digitalRead(BUTTON_PIN_1) == LOW) {
     display_bootmsg(F("Waiting for Serial"));
     #ifdef FeatherLED8
     digitalWrite(FeatherLED8, HIGH);
     #endif FeatherLED8
-    //digitalWrite(13, HIGH);
+ 
     while (! Serial);
     INFO_PRINTLN( F("#Serial export is active"));
     
@@ -148,22 +119,10 @@ void setup() {
   }
 
 
-
   /*
-   * FONA Libary
+   * open the configuration
    */
-  #ifdef FONA
-  fona_init();
-  #endif
-
-
-  /*
-     Interrupt
-  */
-  //pinMode(5, INPUT_PULLUP);
-  //attachInterrupt(digitalPinToInterrupt(interruptPin), blink, CHANGE);
-  //attachInterrupt(5, speed_interrupt, RISING);
-
+  open_config();
 
   /*
    *  SD Card
@@ -173,15 +132,13 @@ void setup() {
   get_last_log();
   #endif //SDCARD
 
-  //delay(3000);
 
   /*
-   * I2C Sensors
+   * Simcom SIM808
    */
-
-  #ifdef I2C
-  i2c_init();
-  #endif // SI7021
+  #ifdef SIM808
+  sim808_init();
+  #endif
 
   /*
    * OneWire Bus
@@ -189,27 +146,30 @@ void setup() {
   #ifdef ONEWIRE
   onewire_init();
   #endif // ONEWIRE
+  
   /*
-   * Watchdog
+   * I2C Sensors
    */
-  #ifdef WD
-  Serial.println("#Activate Watchdog");
-  int countdownMS = Watchdog.enable();
-  Serial.print("#Enabled the watchdog with max countdown of ");
-  Serial.print(countdownMS, DEC);
-  Serial.println(" milliseconds!");
-  #endif
-  
-  #ifdef DISPLAY 
-  MainMenuPos = 1;
-  #endif //LCD
-  
-  display_bootmsg(F("Ready"));
+  #ifdef I2C
+  i2c_init();
+  #endif // I2C
 
+  
+  #ifdef U8G2_DISPLAY 
+  MainMenuPos = 1;
+  #endif // LCD
+
+  /*
+   * RTC
+   */
+  rtc.begin();
+
+
+  
+  
   /*
    * enable Timer
    */
-  #ifdef ARDUINO_ARCH_SAMD
   // Enable clock for TC
   REG_GCLK_CLKCTRL = (uint16_t) (GCLK_CLKCTRL_CLKEN | GCLK_CLKCTRL_GEN_GCLK0 | GCLK_CLKCTRL_ID ( GCM_TCC2_TC3 ) ) ;
   while ( GCLK->STATUS.bit.SYNCBUSY == 1 ); // wait for sync
@@ -217,8 +177,8 @@ void setup() {
   TcCount16* TC = (TcCount16*) TC3; // get timer struct
   TC->CTRLA.reg &= ~TC_CTRLA_ENABLE;   // Disable TCx
   while (TC->STATUS.bit.SYNCBUSY == 1); // wait for sync
-  //TC->CTRLA.reg |= TC_CTRLA_MODE_COUNT16;  // Set Timer counter Mode to 16 bits
-  TC->CTRLA.reg |= TC_CTRLA_MODE_COUNT8;  // Set Timer counter Mode to 16 bits
+  TC->CTRLA.reg |= TC_CTRLA_MODE_COUNT16;  // Set Timer counter Mode to 16 bits
+  //TC->CTRLA.reg |= TC_CTRLA_MODE_COUNT8;  // Set Timer counter Mode to 16 bits
   while (TC->STATUS.bit.SYNCBUSY == 1); // wait for sync
   TC->CTRLA.reg |= TC_CTRLA_WAVEGEN_NFRQ; // Set TC as normal Normal Frq
   while (TC->STATUS.bit.SYNCBUSY == 1); // wait for sync
@@ -237,12 +197,17 @@ void setup() {
   // Enable TC
   TC->CTRLA.reg |= TC_CTRLA_ENABLE;
   while (TC->STATUS.bit.SYNCBUSY == 1); // wait for sync
-  #endif
+  
 
   // at least custom functions
   #ifdef CUSTOM
   custom_init();
   #endif // CUSTOM
+
+
+  display_bootmsg(F("Ready"));
+
+  set_alarm(100,50,2, false);
 
 }
 
@@ -253,90 +218,60 @@ void setup() {
  */
 void loop() {
 
-  //float latitude, longitude, speed_kph, heading, speed_mph, altitude;
-  //char gpsdata[120];
-  //char buffer[23];
-  //boolean success = false;
-
-  //Serial.println("HALLOO LOOOP");
-  //delay(1000);
-  int val = 0;
-
-
-  //resetting Watchdog
-  #ifdef WD
-  //Serial.println("#WD RESET");
-  Watchdog.reset();
-  #endif // WD
+  #ifdef FeatherLED8
+  digitalWrite(FeatherLED8, HIGH);
+  #endif FeatherLED8
   
-  //interrupts();
-
-  //go to loops
-  #ifdef FONA
-  //Serial.println("#FONA");
-  fona_loop();
+  #ifdef SIM808
+  //if (engine_running) {
+    sim808_loop();
+  //}
   #endif
 
+  #ifdef FeatherLED8
+  digitalWrite(FeatherLED8, LOW);
+  #endif FeatherLED8
+  
+  
   #ifdef ONEWIRE
-  //Serial.println("#ONE WIRE");
   onewire_loop();
   #endif // ONEWIRE
 
   #ifdef I2C
-  //Serial.println("#SI7021");
   i2c_loop();
   #endif // SI7021
 
-  #ifdef VW_WATER_TEMP
-  //Serial.println("#VW_WATER_TEMP");
-  vw_water_temp();
-  #endif
+  update_vars();
 
-  #ifdef DISPLAY
-  //Serial.println("#DISPLAY");
-  display_set_led();
-  #endif // DFISPLAY
-
+  #ifdef PRINT_STATUS
   print_status();
+  #endif // PRINT_STATUS
 
   // at least custom functions
   #ifdef CUSTOM
-  //Serial.println("#CUSTOM");
   custom_loop();
   #endif // CUSTOM
 
+  IO_loop();
 
-  //Serial.print("+");
-
-  x_kontakt();
-
-/*  val = analogRead(X_Kontakt);
-  bord_voltage = val * 0.0152;
-  //Serial.print("BOARD VOLTAGE : ");
-  //Serial.println(bord_voltage);
-  if (bord_voltage > 3) {
-    if (!running) {
-      running = true;
-      start_engine();
-    }
+  #ifdef U8G2_DISPLAY
+  if ( display_update_timer < millis() ) {
+    display_update_timer = millis() + U8G2_DISPLAY_UPDATE_TIMER;
+    display_loop();
   }
-  else {
-    if (running) {
-      running = false;
-      stop_engine();
-    }
-    #ifdef FONA
-    //alarmtatus_send = false;
-    #endif // FONA
-  }*/
+  #endif // U8G2_DISPLAY
 
+  button();
+
+  alarm = 1;
+  //make_alarm();
+  alarm_loop();
 
 }
 
 /*
  *   Internal Timer
  */
-#ifdef ARDUINO_ARCH_SAMD
 void TC3_Handler()
 {
   
@@ -345,106 +280,23 @@ void TC3_Handler()
     //Serial.print(".");
     TC->INTFLAG.bit.OVF = 1;    // writing a one clears the flag ovf flag
     
-    #ifdef DISPLAY
-    if ( display_update_timer < millis() ) {
-      display_update_timer = millis() + DISPLAY_UPDATE_TIMER;
+    #ifdef U8G2_DISPLAY
+    /*  if ( display_update_timer < millis() ) {
+      display_update_timer = millis() + U8G2_DISPLAY_UPDATE_TIMER;
+      noInterrupts();
       display_loop();
-    }
-    #endif // DISPLAY
+      interrupts();
+    }*/
+    #endif // U8G2_DISPLAY
 
     button();
   }
 
 }
-#endif
 
 
-/*
- * check button state and debounce it
- *
- * Funktions...
- * 1 = short pressed
- * 2 = long pressed
- * 3 = long pressed release
- * 4 = long pressed repeat
- * 5 = double press?
- */
- 
-void button() {
 
-  if ( button_timer < millis() ) {
-    button_timer = millis() + BUTTON_TIMER;
-    if ( !button_timer_lock ) {
-      button_timer_lock = true;
 
-      if (digitalRead(BUTTON_PIN_1) == LOW) {
-        digitalWrite(8, HIGH);
-        button_1_low++;
-        button_1_high = 0;
-        #ifdef DEBUG
-        Serial.println(F("#Button pressed "));
-        Serial.println(button_1_low, DEC);
-        Serial.println(button_1_high, DEC);
-        #endif
-      }
-      else {
-        digitalWrite(8, LOW);
-        button_1_high++;
-      }
-      // long press 
-      if ((button_1_low == 10) && (button_1_high == 0)) {
-        button_1 = 2;
-        button_1_high = 0;
-        #ifdef DEBUG
-        Serial.println(F("#long press"));
-        #endif
-      }
-      // long press released
-      else if ((button_1_low >= 10) && (button_1_high >= 1)) {
-        button_1 = 3;
-        button_1_high = 0;
-        button_1_low = 0;
-        #ifdef DEBUG
-        Serial.println(F("#long press rleased"));
-        #endif
-      }
-      // long press repeat
-      else if ((button_1_low >= 15) && (button_1_high == 0)) {
-        button_1 = 4;
-        button_1_high = 0;
-        #ifdef DEBUG
-        Serial.println(F("#long press repeat"));
-        #endif
-      }
-      
-      /*else if ((button_1_low >= 1) && (button_1_high == 1)) {
-        if ( button_1_double == 1 ) {
-          button_1 = 6;
-          button_1_high=0;
-          button_1_low=0;
-          button_1_double = 0;
-          Serial.println(F("double press"));
-    
-        }
-        else {
-          button_1 = 5;
-          button_1_double = 1;
-          Serial.println(F("double press??"));
-        }
-      }*/
-      else if ((button_1_low >= 1) && (button_1_high >= 1)) {
-        button_1 = 1;
-        button_1_high = 0;
-        button_1_low = 0;
-        button_1_double = 0;
-        //Serial.println(F("#short press"));
-      }
-      
-      button_timer_lock = false;
-    }
-    else {
-      Serial.println(F("#button locked..."));
-    }
-  }
-}
+
+
 

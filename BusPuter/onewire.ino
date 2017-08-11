@@ -12,30 +12,49 @@
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
 
-#define ONEWIRE_TIMER 500 // 5s
+
 unsigned long onewire_timer = 0;
 
 
 
 void onewire_init() {
   display_bootmsg(F("Init OneWire"));
+  sensors.begin();
+
+  sensors.requestTemperatures(); // Send the command to get temperatures
+
+    ds18b20_temp = sensors.getTempCByIndex(0)*10;
+
+    if (sensors.getTempCByIndex(0) != -127 ) {
+      DEBUG_PRINTLN(F("#OneWire sensors found"));
+      onewire_available = true;
+      //delay(2000);
+      if ( temp_out_port == 0 ) {
+        temp_out_port = 1;
+      }
+    }
+    else {
+      if ( temp_out_port == 1 ) {
+        temp_out_port = 2;
+      }
+    }
+
   
 }
 
 void onewire_loop() {
-  if ( onewire_timer < millis() ) {
+  if ( ( onewire_timer < millis() ) && onewire_available ) {
     
     onewire_timer = millis() + ONEWIRE_TIMER;
 
     sensors.requestTemperatures(); // Send the command to get temperatures
 
-    #ifdef DS18B20_AS_OUT
-    temp_out = (sensors.getTempCByIndex(0) * 10);
-    #endif
+    ds18b20_temp = sensors.getTempCByIndex(0)*10;
 
-    #ifdef DS18B20_AS_IN
-    temp_in = (sensors.getTempCByIndex(0) * 10);
-    #endif
+    //if (ds18b20_temp = -127 ) {
+    //  DEBUG_PRINTLN(F("#NO sensor found"));
+    //}
+
   }
 }
 

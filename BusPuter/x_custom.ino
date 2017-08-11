@@ -16,9 +16,6 @@
 #define CUSTOM_TIMER 200 // 200ms
 unsigned long custom_timer = 0;
 
-
-
-
 #ifdef CUSTOM
 
 
@@ -39,11 +36,12 @@ void custom_loop() {
 /*
  * part for the custum menu
  */
+#ifdef U8G2_DISPLAY
 #ifdef ARDUINO_ARCH_SAMD
-void custom_menu() {
-  char buf[24];
+/*void custom_menu() {
+  //char buf[24];
 
-/*  u8g2.setFont(small_font);
+  u8g2.setFont(small_font);
   u8g2.setFontPosTop();
   u8g2.setCursor(Xpos, Ypos);
   u8g2.print(F("User defined Men\xfc")); // \xfc = ü
@@ -52,7 +50,7 @@ void custom_menu() {
   u8g2.print(F("This is a"));
   u8g2.setCursor(Xpos, Ypos+16);
   u8g2.print(F("selbstgemachtes Men\xfc"));
-*/
+
 
   // this is needed to reackt on the button action
   switch (button_1) {
@@ -61,8 +59,9 @@ void custom_menu() {
   }
   button_1 = 0;
 
-}
+}*/
 #endif // ARDUINO_ARCH_SAMD
+#endif // U8G2_DISPLAY
 #else // CUSTOM
 
 #endif // CUSTOM
