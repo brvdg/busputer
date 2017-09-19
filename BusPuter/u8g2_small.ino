@@ -721,6 +721,42 @@ void menu_opt_speed() {
   button_1 = 0;
 }
 
+void menu_opt_dimmer_min() {
+
+  u8g2.setFont(small_font);
+  u8g2.setFontPosTop();
+  u8g2.setCursor(Xpos, Ypos);
+  u8g2.print(F("Dimmer Minimum:"));
+
+  u8g2.setCursor(Xpos + 10, Ypos + 10);
+
+  u8g2.print(dimmer_min, DEC);
+  
+  switch (button_1) {
+    case 1: MainMenuPos++; break;
+    case 2: dimmer_min++; break;
+  }
+  button_1 = 0;
+}
+
+void menu_opt_dimmer_max() {
+
+  u8g2.setFont(small_font);
+  u8g2.setFontPosTop();
+  u8g2.setCursor(Xpos, Ypos);
+  u8g2.print(F("Dimmer Maximum:"));
+
+  u8g2.setCursor(Xpos + 10, Ypos + 10);
+
+  u8g2.print(dimmer_min, DEC);
+  
+  switch (button_1) {
+    case 1: MainMenuPos++; break;
+    case 2: dimmer_max++; break;
+  }
+  button_1 = 0;
+}
+
 void menu_save_config() {
 
   u8g2.setFont(small_font);
@@ -761,7 +797,7 @@ void menu_save_config() {
   }
   button_1 = 0;
 
-  MainMenuPos++;
+  //MainMenuPos++;
 }
 
 void menu_debug_ports() {

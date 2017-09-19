@@ -42,12 +42,15 @@ int si7021_hum = 0;
 
 // Voltage
 float bord_voltage = 0;
+//float bord_voltage_blynk = 0;
 byte bord_voltage_port = BORD_VOLTAGE_PORT;
 
 // Dimmer
 byte dimmer_port = DIMMER;
 float dimmer_V = 0;
 //byte mood_port = 2;
+byte dimmer_min = 0;
+byte dimmer_max = 10;
 
 // Fuel
 float fuel_V = 0;
@@ -76,7 +79,9 @@ byte speed_source = SPEEDSOURCE;
 // Door
 byte door_port = 0;
 
+// Alarm
 byte alarm = 0;
+unsigned long alarm_timer = 0;
 
 // OneWire 
 bool onewire_available = false;
@@ -89,6 +94,13 @@ String sim_apn = SIM_APN;
 String sim_user = SIM_USER;
 String sim_pass = SIM_PASS;
 String blynk_key = BLYNK_KEY;
+boolean online = false;
+
+byte blynk_offline_counter = 0;
+boolean blynk_alarm = false;
+int blynk_geofancy_distance = 1;
+boolean blynk_geofancy_alarmed = false;
+unsigned long online_intervall_timer = 0;
 
 boolean running = false;
 
@@ -208,6 +220,9 @@ uint16_t gps_course;
 int gps_altitude;
 int gps_view_satellites;
 int gps_used_satellites;
+int gps_altitude_blynk;
+int gps_view_satellites_blynk;
+int gps_used_satellites_blynk;
 float gps_latitude, gps_longitude;
 float gps_latitude_old = 0;
 float gps_longitude_old = 0;
@@ -215,6 +230,10 @@ float gps_latitude_lasttrack = 0;
 float gps_longitude_lasttrack = 0;
 float gps_latitude_lastlog = 0;
 float gps_longitude_lastlog = 0;
+float gps_latitude_blynk = 0;
+float gps_longitude_blynk = 0;
+float gps_latitude_blynk_geofancy = 0;
+float gps_longitude_blynk_geofancy = 0;
 boolean gps_success = false;
 boolean gps_fix = false;
 uint32_t gps_distance_trip = 0;

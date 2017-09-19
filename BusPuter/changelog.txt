@@ -1,7 +1,8 @@
-Version 170811a
-- major changes
-This version is based on hardware version 0.8.
-It’s not tested with older hardware.
+Version 0.8 
+Based on Hardware rev 0.8
+- changing from Adafruit FONA library to TinyGSM
+- adding a alarming system
+- add an alarm if the light stills on after ignition turned off
 
 
 Version 170222a
@@ -13,7 +14,7 @@ Version 170125a
 
 - add I2C sensor SI7021
 - add VW Kombiinstrumen temperature sensor
-- add function to mood the backlight LED
+- add function to dimm the backlight LED
 
 Version 170118a
 

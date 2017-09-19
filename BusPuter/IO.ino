@@ -57,28 +57,14 @@ unsigned long IO_timer = 0;
 void IO_init() {
 
   #ifdef ALARM_OUT
-  //pinMode(9, OUTPUT);
+  
   pinMode(ALARM_PORT, OUTPUT); 
-  //digitalWrite(13, HIGH);
-  //analogWrite(13, 10);
-  /*delay(100);
+  
   digitalWrite(ALARM_PORT, HIGH);
   delay(100);
   digitalWrite(ALARM_PORT, LOW);
   delay(100);
-  digitalWrite(ALARM_PORT, HIGH);
-  delay(100);
-  digitalWrite(ALARM_PORT, LOW);
-  delay(100);
-  digitalWrite(ALARM_PORT, HIGH);
-  delay(100);
-  digitalWrite(ALARM_PORT, LOW);
-  delay(100);*/
-  digitalWrite(ALARM_PORT, HIGH);
-  delay(100);
-  digitalWrite(ALARM_PORT, LOW);
-  delay(100);
-  //digitalWrite(13, HIGH);
+  
   #endif //ALARM_OUT
 
   digitalWrite(A0, HIGH);
@@ -101,6 +87,8 @@ void IO_init() {
   #ifdef U8G2_DISPLAY_BG_LED
   analogWrite(U8G2_DISPLAY_BG_LED, DIMMER_MIN);
   #endif
+
+  read_ports();
   
 }
 
@@ -140,8 +128,7 @@ void IO_loop() {
     get_speed();
 
     get_fuel();
-
-    
+ 
 
   }
 
@@ -240,7 +227,7 @@ void get_rpm() {
     case 6: val = a5_hz; a5_hz = 0; break;
   }
 
-  rpm = (float(val*2) / rpm_multip) * 60;
+  rpm = (float(val) / rpm_multip) * 60;
 
   TRACE_PRINT(F("#RPM: "));
   TRACE_PRINTLN(rpm);

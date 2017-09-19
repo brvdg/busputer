@@ -24,7 +24,9 @@
 #define MENU_opt_bord_voltage 103
 #define MENU_opt_ki_dimmer 104
 #define MENU_opt_speed 105
-#define MENU_save_config 106
+#define MENU_opt_dimmer_min 106
+#define MENU_opt_dimmer_max 107
+#define MENU_save_config 108
 
 #define MENU_debug_ports 200
 #define MENU_debug_ports_2 201
@@ -34,7 +36,13 @@
 
 #ifdef DOGS102
 U8G2_UC1701_EA_DOGS102_F_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ U8G2_DISPLAY_CS, /* dc=*/ U8G2_DISPLAY_DC);
+//U8G2_PCD8544_84X48_1_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ U8G2_DISPLAY_CS, /* dc=*/ U8G2_DISPLAY_DC, /*rst=*/ U8G2_DISPLAY_RST );
+
 //U8G2_ST7565_EA_DOGM128_F_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ U8G2_DISPLAY_CS, /* dc=*/ U8G2_DISPLAY_DC);
+#endif
+
+#ifdef NOKIA
+U8G2_PCD8544_84X48_F_4W_HW_SPI u8g2(U8G2_R0, /* cs=*/ 12, /* dc=*/ 10, /* reset=*/ 11);     // Nokia 5110 Display
 #endif
 
 #ifdef OLED
@@ -103,6 +111,8 @@ void display_draw(void) {
     case MENU_opt_bord_voltage: menu_opt_bord_voltage(); break;
     case MENU_opt_ki_dimmer: menu_opt_ki_dimmer(); break;
     case MENU_opt_speed: menu_opt_speed(); break;
+    case MENU_opt_dimmer_min: menu_opt_dimmer_min(); break;
+    case MENU_opt_dimmer_max: menu_opt_dimmer_max(); break;
     case MENU_save_config: menu_save_config(); break;
 
     case MENU_debug_ports: menu_debug_ports(); break;

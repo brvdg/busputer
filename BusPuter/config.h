@@ -1,29 +1,28 @@
 /****************************************************
- * Busputer Configuration
- * for detailed informations see 
- * https://github.com/brvdg/busputer/wiki
+   Busputer Configuration
+   for detailed informations see
+   https://github.com/brvdg/busputer/wiki
  ****************************************************/
 
 /*
- * Hardware configuration
- */
-
-//#define CUSTOMBOARD
-//#define BUSPUTER_OLED_DEFAULT
-//#define BUSPUTER_DOGS_DEFAULT
+   Hardware configuration
+*/
 
 // Display Configuration
 #define U8G2_DISPLAY
-#define DOGS102
-//#define OLED
+//#define DOGS102
+#define OLED
+//#define NOKIA
 
-#ifdef U8G2_DISPLAY 
-#define U8G2_DISPLAY_BG_LED 10
+// Port defination
+#ifdef U8G2_DISPLAY
+//#define U8G2_DISPLAY_BG_LED 10 //turn this off if a OLED ist used
 #define U8G2_DISPLAY_CS 11
 #define U8G2_DISPLAY_DC 12
 #define U8G2_DISPLAY_RST 10
 
-#define DIMMER 2
+// defination of LCD dimmer
+#define DIMMER 2 //Port for the cluster dimmer source
 #define DIMMER_MAX_mV 13800
 #define DIMMER_MIN_mV 4000
 #define DIMMER_MAX 150
@@ -32,7 +31,7 @@
 #endif // U8G2_DISPLAY
 
 // SD Card
-//#define SDCARD
+#define SDCARD
 #define SD_CS 4
 
 
@@ -44,22 +43,29 @@
 #define SMS_Keyword "geheim"
 #define BLYNK_KEY "1234567890abc..."
 
+#define BLYNK_DEVICE_NAME "TEST"
 
-/* 
- *  Temperature source
- *  0 = disabled / auto
- *  1 = OneWire
- *  2 = SI7021
- */
+// if this is turned on
+// we are only if the car is turned off
+//#define ONLINE_ON_STANDBY
+#define ONLINE_INTERVALL 15 // interval in min
+
+
+/*
+    Temperature source
+    0 = disabled / auto
+    1 = OneWire
+    2 = SI7021
+*/
 #define TEMP_OUT_PORT 0
 
 /*
- * Speed source
- * 0 = Speedpulse and GPS
- * 1 = Speedpulse
- * 2 = GPS
- */
+   Speed source
+   1 = Speedpulse
+   2 = GPS
+*/
 #define SPEEDSOURCE 2
+
 // Speedpulse Port
 #define SPEEDPULSE_PORT 6
 #define SPEEDPULSEARRAY 25
@@ -67,7 +73,7 @@
 
 // RPM gauge
 #define RPM_PORT 5
-#define RPM_MULTIPL 4.8594 // # cylinders
+#define RPM_MULTIPL 2
 
 // Water Temp gauge
 #define WATER_TEMP 4
@@ -91,12 +97,16 @@
 
 #define BUTTON_PIN_1 9
 
+// Alarm output
 #define ALARM_OUT
-#define ALARM_PORT 13 
+#define ALARM_PORT 13
+//#define ALARM_DISPLAY
 
-
+// bord voltage
 #define BORD_VOLTAGE_PORT 1
 
+
+// LED on Feather board for running status
 #define FeatherLED8 8
 
 
@@ -115,26 +125,30 @@
 //#define TRACE
 
 // print the status on serial port
-#define PRINT_STATUS
+//#define PRINT_STATUS
 
 
 
 
 
 
-// define which funkction whil be used for default variables
-// Time
-//#define GPS_TIME // use GPS Time as default time
-//#define DS3231_TIME //??
-//Speed
-//#ifdef FONA
-//#define GPS_SPEED
-//#endif // FONA
-//#define SPEEDPULE_SPEED
-// Distance
-//#define GPS_DISTANCE
-//#define SPEEDPULSE_DISTANCE
+/*
+ * Blynk virtual Ports defination
+ */
 
+#define BLYNK_VIRTUAL_terminal V0
+#define BLYNK_VIRTUAL_map V1
+#define BLYNK_VIRTUAL_gps_used_satellites V2
+#define BLYNK_VIRTUAL_gps_view_satellites V3
+#define BLYNK_VIRTUAL_gps_latitude V4
+#define BLYNK_VIRTUAL_gps_longitude V5
+#define BLYNK_VIRTUAL_gps_altitude V6
+#define BLYNK_VIRTUAL_bord_voltage V7
+
+#define BLYNK_VIRTUAL_alarm_modus V10
+#define BLYNK_VIRTUAL_alarm_led V11
+#define BLYNK_VIRTUAL_geofancy_distance V12
+#define BLYNK_VIRTUAL_geofancy_led V13
 
 
 #if defined (DOGS102) && defined (OLED)
@@ -148,8 +162,8 @@
 #endif
 
 /*
- * Timer for the seperate Tasks
- */
+   Timer for the seperate Tasks
+*/
 
 #define U8G2_DISPLAY_UPDATE_TIMER 40 // 200ms
 #define PRINT_STATUS_TIMER 2000 //
@@ -159,6 +173,8 @@
 #define ONEWIRE_TIMER 500 // 5s
 #define ANALOG_TIMER 1000 // 1000ms
 #define IO_TIMER 100 // 100ms
+#define ALARM_TIMER 100 // 100ms
+
 
 //#define FONA_LOOP_TIME 10000 // 1s ???
 //#define FONA_GPS_TIMER 1000 // 1s
@@ -172,7 +188,7 @@
 #define SIM808_BATT_TIMER 30000 // 30s
 #define SIM808_BLYNK_TIMER 5000 // 5s
 //#define SIM808_GPS_STATUS_TIMER 3000 // 3s
-
+#define BLYNK_CHECK_TIMER 600000 // 10min
 
 
 

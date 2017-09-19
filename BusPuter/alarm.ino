@@ -15,13 +15,17 @@ void alarm_loop() {
     if ( alarm_on_timer > millis() ) {
       digitalWrite(ALARM_PORT, HIGH);
       if ( blink_bg_led ) {
+        #ifdef U8G2_DISPLAY_BG_LED
         analogWrite(U8G2_DISPLAY_BG_LED, 255);
+        #endif
       }
     }
     else if ( alarm_off_timer > millis() ) {
       digitalWrite(ALARM_PORT, LOW);
       if ( blink_bg_led ) {
+        #ifdef U8G2_DISPLAY_BG_LED
         analogWrite(U8G2_DISPLAY_BG_LED, 0);
+        #endif
       }
     }
     else {

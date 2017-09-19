@@ -8,7 +8,7 @@
 
 
 #define VERSION "0.8"
-#define BUILD "1700811a"
+#define BUILD "1700919a"
 
 // include configuration file
 #include "config.h"
@@ -21,6 +21,21 @@
 #include <avr/pgmspace.h>
 #include <avr/dtostrf.h>
 
+
+/*
+ * Blynk definations
+ */
+#define BLYNK_PRINT Serial // Defines the object that is used for printing
+#define BLYNK_DEBUG        // Optional, this enables more detailed prints
+
+// Select your modem:
+//#define TINY_GSM_MODEM_SIM800
+#define TINY_GSM_MODEM_SIM808
+//#define TINY_GSM_MODEM_SIM900
+//#define TINY_GSM_MODEM_A6
+//#define TINY_GSM_MODEM_M590
+#include <TinyGsmClient.h>
+#include <BlynkSimpleSIM800.h>
 
 
 
@@ -120,11 +135,6 @@ void setup() {
 
 
   /*
-   * open the configuration
-   */
-  open_config();
-
-  /*
    *  SD Card
    */
   #ifdef SDCARD
@@ -132,6 +142,10 @@ void setup() {
   get_last_log();
   #endif //SDCARD
 
+  /*
+   * open the configuration
+   */
+  open_config();
 
   /*
    * Simcom SIM808
@@ -208,6 +222,8 @@ void setup() {
   display_bootmsg(F("Ready"));
 
   set_alarm(100,50,2, false);
+
+
 
 }
 
@@ -288,7 +304,12 @@ void TC3_Handler()
       interrupts();
     }*/
     #endif // U8G2_DISPLAY
-
+    if ( alarm_timer < millis() ) {
+      alarm_timer = millis() + ALARM_TIMER;
+      alarm_loop();
+   
+    }
+    
     button();
   }
 
