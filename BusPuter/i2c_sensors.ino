@@ -18,7 +18,7 @@ double si7021_humidity;
 
 
 
-#ifdef SI7021_AS_IN
+/*#ifdef SI7021_AS_IN
 #define TEMPERATURE_IN
 #define HUMIDITY_IN
 #endif // SI7021_AS_IN
@@ -26,6 +26,7 @@ double si7021_humidity;
 #define TEMPERATURE_OUT
 #define HUMIDITY_OUT
 #endif // SI7021_AS_OUT
+*/
 
 
 //const int ADDR =0x40;
@@ -135,15 +136,11 @@ void i2c_loop() {
 void i2c_get_si7021() {
   TRACE_PRINT(F("#i2c_get_si7021"));
   
-
-  //Serial.println("START #1");
-  //Send command of initiating temperature measurement
   Wire.beginTransmission(0x40);
   Wire.write(0xE3);
   Wire.endTransmission();
 
-  //Serial.println("END #1");
-
+  
   //read temperature
   Wire.requestFrom(0x40,2);
   if(Wire.available()<=2);
@@ -163,8 +160,6 @@ void i2c_get_si7021() {
   Wire.beginTransmission(0x40);                     
   Wire.write(0xE5);
   Wire.endTransmission(); 
-
-  //Serial.println("END #2");
 
   Wire.requestFrom(0x40,2);
   if(Wire.available()<=2);
@@ -186,15 +181,6 @@ void i2c_get_si7021() {
 
   si7021_hum = si7021_humidity;
 
-  /*#ifdef SI7021_AS_IN
-  temp_in = si7021_temperature*10;
-  hum_in = si7021_humidity;
-  #endif // SI7021_AS_IN
-
-  #ifdef SI7021_AS_OUT
-  temp_out = si7021_temperature*10;
-  hum_out = si7021_humidity;
-  #endif // SI7021_AS_IN*/
   
 }
 #endif // SI7021

@@ -43,12 +43,13 @@
 #define SMS_Keyword "geheim"
 #define BLYNK_KEY "1234567890abc..."
 
-#define BLYNK_DEVICE_NAME "TEST"
+#define BLYNK_DEVICE_NAME "MyCar"
 
 // if this is turned on
 // we are only if the car is turned off
-//#define ONLINE_ON_STANDBY
+#define ONLINE_ON_STANDBY
 #define ONLINE_INTERVALL 15 // interval in min
+//#define GEOFANCY_DISTANCE 50 // im m
 
 
 /*
@@ -121,7 +122,7 @@
 // enable Debugging
 //#define OFFLINE // disable some functions for programming and testing
 #define INFO
-#define DEBUG
+//#define DEBUG
 //#define TRACE
 
 // print the status on serial port
@@ -144,7 +145,7 @@
 #define BLYNK_VIRTUAL_gps_longitude V5
 #define BLYNK_VIRTUAL_gps_altitude V6
 #define BLYNK_VIRTUAL_bord_voltage V7
-
+#define BLYNK_VIRTUAL_online_LED V9
 #define BLYNK_VIRTUAL_alarm_modus V10
 #define BLYNK_VIRTUAL_alarm_led V11
 #define BLYNK_VIRTUAL_geofancy_distance V12

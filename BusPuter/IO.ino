@@ -26,32 +26,7 @@ int vw_temp [][2] PROGMEM = {  {1000, 20},
                         {38, 114},
                         {32, 119},
                         {26, 125}};
-/*
-https://www.bulliforum.com/viewtopic.php?t=76569#p601204
-1000  ; 20,1
-800 ; 26,6
-700 ; 30,4
-502 ; 40,1
-425 ; 44,9
-350 ; 50,5
-300 ; 55,0
-250 ; 60,3
-212 ; 65,1
-180 ; 69,8
-150 ; 75,1
-125 ; 80,4
-107 ; 84,9
-89  ; 90,3
-75  ; 95,2
-60  ; 101,7
-53  ; 105,3
-45  ; 110,0
-38  ; 114,9
-32  ; 119,9
-26,8  ; 125,1*/
 
-
-//unsigned long analog_timer = 0;
 unsigned long IO_timer = 0;
 
 void IO_init() {
@@ -72,17 +47,13 @@ void IO_init() {
   digitalWrite(A2, HIGH);
   digitalWrite(A3, HIGH);
 
-  //attachInterrupt(A4, interrupt_A4, CHANGE);
+  
   pinMode(A4, INPUT);           // set pin to input
   pinMode(A5, INPUT);           // set pin to input
   digitalWrite(A4, HIGH);       // turn on pullup resistors
   digitalWrite(A5, HIGH);       // turn on pullup resistors
   attachInterrupt(A4, interrupt_A4, FALLING); // attach interrupt
   attachInterrupt(A5, interrupt_A5, FALLING);
-
-  #ifdef VW_WATER_TEMP
-  //digitalWrite(VW_WATER_TEMP, HIGH);
-  #endif // VW_WATER_TEMP
 
   #ifdef U8G2_DISPLAY_BG_LED
   analogWrite(U8G2_DISPLAY_BG_LED, DIMMER_MIN);
@@ -119,8 +90,6 @@ void IO_loop() {
     dimmer();
     #endif
     
-    //analog_timer = millis() + ANALOG_TIMER; 
-
     get_rpm();
 
     get_clima_out();

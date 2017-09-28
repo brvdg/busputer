@@ -1,34 +1,16 @@
-/**************************************************************
+/***************************************************
+ *  This sketch is for SIM808 and BLYNK communication.
+ *  https://github.com/vshymanskyy/TinyGSM
  *
- * For this example, you need to install Blynk library:
- *   https://github.com/blynkkk/blynk-library/releases/latest
- *
- * TinyGSM Getting Started guide:
- *   http://tiny.cc/tiny-gsm-readme
- *
- **************************************************************
- *
- * Blynk is a platform with iOS and Android apps to control
- * Arduino, Raspberry Pi and the likes over the Internet.
- * You can easily build graphic interfaces for all your
- * projects by simply dragging and dropping widgets.
- *
- * Blynk supports many development boards with WiFi, Ethernet,
- * GSM, Bluetooth, BLE, USB/Serial connection methods.
- * See more in Blynk library examples and community forum.
- *
- *                http://www.blynk.io/
- *
- * Change GPRS apm, user, pass, and Blynk auth token to run :)
- **************************************************************/
-
-//#define BLYNK_PRINT Serial    // Comment this out to disable prints and save space
+ *  Author: Brun
+ *  
+ ****************************************************/
 
 // Default heartbeat interval for GSM is 60
 // If you want override this value, uncomment and set this option:
 //#define BLYNK_HEARTBEAT 30
 
-#define BLYNK_PRINT Serial // Defines the object that is used for printing
+//#define BLYNK_PRINT Serial // Defines the object that is used for printing
 //#define BLYNK_DEBUG        // Optional, this enables more detailed prints
 
 // Select your modem:
@@ -37,21 +19,6 @@
 //#define TINY_GSM_MODEM_SIM900
 //#define TINY_GSM_MODEM_A6
 //#define TINY_GSM_MODEM_M590
-
-// included in the main part
-//#include <TinyGsmClient.h>
-//#include <BlynkSimpleSIM800.h>
-
-// You should get Auth Token in the Blynk App.
-// Go to the Project Settings (nut icon).
-//const char auth[] = "2f4fcc4b571343c182cb46318f073427";
-//#define AUTH_KEY "2f4fcc4b571343c182cb46318f073427"
-
-// Your GPRS credentials
-// Leave empty, if missing user or pass
-//const char apn[]  = "internet.t-mobile";
-//const char user[] = "t-mobile";
-//const char pass[] = "tm";
 
 // Hardware Serial on Mega, Leonardo, Micro
 #define SerialAT Serial1
@@ -62,6 +29,7 @@ WidgetTerminal terminal(BLYNK_VIRTUAL_terminal);
 WidgetMap myMap(BLYNK_VIRTUAL_map);
 WidgetLED alarm_led(BLYNK_VIRTUAL_alarm_led);
 WidgetLED geofancy_led(BLYNK_VIRTUAL_geofancy_led);
+WidgetLED online_LED(BLYNK_VIRTUAL_online_LED);
 
 boolean blynk = false;
 byte i = 0;
@@ -72,8 +40,6 @@ unsigned long timer2 = 0;
 unsigned long sim808_gps_timer = 0;
 unsigned long sim808_sms_timer = 0;
 unsigned long sim808_blynk_timer = 0;
-//unsigned long fona_batt_timer = 0;
-//unsigned long fona_gps_status_timer = 0;
 
 
 
@@ -81,31 +47,18 @@ unsigned long sim808_blynk_timer = 0;
 void sim808_init()
 {
 
-  //pinMode(8, OUTPUT);
-  //digitalWrite(8, HIGH);
-
-  //pinMode(5, OUTPUT);
-  //digitalWrite(5, HIGH);
-  
-  // Set console baud rate
-//  Serial.begin(115200);
-//  delay(10);
-
   // Set GSM module baud rate
   SerialAT.begin(115200);
-  //delay(3000);
 
   // Restart takes quite some time
   // To skip it, call init() instead of restart()
-  //Serial.println("Initializing modem...");
   display_bootmsg(F("Initializing SIM808"));
   modem.restart();
 
   // Unlock your SIM card with a PIN
-  //modem.simUnlock("7782");
+  //modem.simUnlock("1234");
   //delay(3000);
 
-  //Blynk.begin(auth, modem, apn, user, pass);
   modem.begin();
 
   display_bootmsg(F("enable GPS"));
@@ -117,14 +70,9 @@ void sim808_init()
   }
   modem.getSimStatus();
 
-  //digitalWrite(8, LOW);
-
-  //rtc.begin();
-
   // go online if we defined it
   #ifdef ONLINE_ON_STANDBY
   if ( sim808_go_online() ) {
-    //Blynk.notify(F("Blynk is initialized"));
     terminal.println(F("Blynk is initialized"));
     terminal.flush();
     online=true;
@@ -134,76 +82,6 @@ void sim808_init()
 }
 
 
-
-/*
- * Blynk Functions
- * 
- */
-BLYNK_CONNECTED() {
-    Blynk.syncAll();
-}
-BLYNK_APP_DISCONNECTED() {
-  //Blynk.notify(F("app disconected"));
-  terminal.println(F("app disconected"));
-}
-BLYNK_APP_CONNECTED() {
-  //Blynk.notify(F("app conected"));
-  terminal.println(F("app conected"));
-  terminal.flush();
-}
-
-BLYNK_WRITE(BLYNK_VIRTUAL_alarm_modus) 
-{   
-  int value = param.asInt(); // Get value as integer
-  INFO_PRINTLN(F("BLYNK_VIRTUAL_alarm_modus triggert"));
-  INFO_PRINTLN(value);
-
-  if ( value == 1 ) {
-    if (!blynk_alarm) {
-      blynk_alarm = true;
-      terminal.println(F("alarm modus on"));
-    
-      alarm_led.on();
-      geofancy_led.off();
-
-      gps_latitude_blynk_geofancy = gps_latitude;
-      gps_longitude_blynk_geofancy = gps_longitude;
-
-      //blynk_geofancy_alarmed = false;
-
-      terminal.print(F("geofancy distance is set to: "));
-      terminal.print(blynk_geofancy_distance);
-      terminal.println(F("m"));
-    }
-  }
-  else {
-    if (blynk_alarm) {
-      blynk_alarm = false;
-      terminal.println(F("alarm modus off"));
-      alarm_led.off();
-      geofancy_led.off();
-      blynk_geofancy_alarmed = false;
-    }
-  }
-  //terminal.println(F("V10 triggert"));
-  terminal.flush();
-}
-
-BLYNK_WRITE(BLYNK_VIRTUAL_geofancy_distance) 
-{
-  int value = param.asInt(); // Get value as integer
-  if ( value != blynk_geofancy_distance ) {
-    INFO_PRINTLN(F("set geofancy distance"));
-    INFO_PRINTLN(value);
-    blynk_geofancy_distance = value;
-
-    terminal.print(F("geofancy distance is set to: "));
-    terminal.print(blynk_geofancy_distance);
-    terminal.println(F("m"));
-    terminal.flush();
-  }
-  
-}
 
 void sim808_loop()
 {
@@ -223,7 +101,7 @@ void sim808_loop()
         DEBUG_PRINTLN(F("#going offline "));
         if (sim808_go_offline()) { 
           online = false; 
-          online_intervall_timer = millis() + ONLINE_INTERVALL * 6000;
+          online_intervall_timer = millis() + ONLINE_INTERVALL * 60000;
         }
       }
     }
@@ -274,9 +152,6 @@ void sim808_loop()
       gps_distance_trip += (int)(distance + .5);
       #endif
       
-      //DEBUG_PRINT(F("#Distance is: "));
-      //DEBUG_PRINTLN(distance);
-
       if (gps_speed > 10) {
         gps_distance += (int)(distance + .5);
         gps_distance_trip += (int)(distance + .5);
@@ -288,7 +163,7 @@ void sim808_loop()
       }
 
       /*
-       * Geo Fancy
+       * geofance
        */
       if ( blynk_alarm ) {
         if ( get_distance(gps_latitude_blynk, gps_longitude_blynk, gps_latitude_blynk_geofancy, gps_longitude_blynk_geofancy) >= blynk_geofancy_distance ) {
@@ -302,9 +177,9 @@ void sim808_loop()
                 //Send an SMS
               }
             }
-            Blynk.notify(F("ALARM!!! Geofancy exceeded!"));
+            Blynk.notify(F("ALARM!!! Geo-fance exceeded!"));
             geofancy_led.on();
-            terminal.print(F("Geofancy exceeded!!! "));
+            terminal.print(F("Geo-fance exceeded!!! "));
             terminal.print(get_distance(gps_latitude_blynk, gps_longitude_blynk, gps_latitude_blynk_geofancy, gps_longitude_blynk_geofancy));
             terminal.println(F("m"));
             terminal.flush();
@@ -321,18 +196,22 @@ void sim808_loop()
 
           // Update position if it's more then 10m
           if ( get_distance(gps_latitude, gps_longitude, gps_latitude_blynk, gps_longitude_blynk) >= 10 ) {
-            myMap.location(1, gps_latitude, gps_longitude, BLYNK_DEVICE_NAME);
+            myMap.location(1, 52.4161, 9.66569, BLYNK_DEVICE_NAME);
+            //myMap.location(1, gps_latitude, gps_longitude, BLYNK_DEVICE_NAME);
             DEBUG_PRINTLN(F("#location is set"));
             Blynk.virtualWrite(BLYNK_VIRTUAL_gps_used_satellites, gps_used_satellites);
             Blynk.virtualWrite(BLYNK_VIRTUAL_gps_view_satellites, gps_view_satellites);
-            Blynk.virtualWrite(BLYNK_VIRTUAL_gps_latitude, gps_latitude);
-            Blynk.virtualWrite(BLYNK_VIRTUAL_gps_longitude, gps_longitude);
+
+            Blynk.virtualWrite(BLYNK_VIRTUAL_gps_latitude, 52.4161);
+            Blynk.virtualWrite(BLYNK_VIRTUAL_gps_longitude, 9.6656);
+            //Blynk.virtualWrite(BLYNK_VIRTUAL_gps_latitude, gps_latitude);
+            //Blynk.virtualWrite(BLYNK_VIRTUAL_gps_longitude, gps_longitude);
             Blynk.virtualWrite(BLYNK_VIRTUAL_gps_altitude, gps_altitude);
             gps_latitude_blynk = gps_latitude;
             gps_longitude_blynk = gps_longitude;
-            terminal.print(F("distance was: "));
-            terminal.println(get_distance(gps_latitude, gps_longitude, gps_latitude_old, gps_longitude_old));
-            terminal.flush();
+            //terminal.print(F("distance was: "));
+            //terminal.println(get_distance(gps_latitude, gps_longitude, gps_latitude_old, gps_longitude_old));
+            //terminal.flush();
           }
 
           
@@ -352,12 +231,8 @@ void sim808_loop()
           Blynk.run();
       
           sim808_blynk_timer = millis() + SIM808_BLYNK_TIMER;
-        }
-          
-        
+        } 
       }
-
-      
     }
     else {
       DEBUG_PRINTLN(F("#gps not fix"));
@@ -444,22 +319,8 @@ void sim808_sms() {
         else  {
           modem.sendSMS(sender, F("Coldn't connect to Blynk Server"));
         }
-        
-        
-        //Serial.println("delete this sms.");
+        //DEBUG_PRINTLN("F(#delete this sms."));
         modem.deleteSMS(i);
-
-        /*float latitude, longitude, speed_kph, heading, speed_mph, altitude;
-        String utctime;
-        int fix, viewed_sat, used_sat;
-        modem.getGPS(&latitude, &longitude, &speed_kph, &altitude, &fix, &viewed_sat, &used_sat);
-
-        String status = String("http://maps.apple.com/?q=" + String(latitude, 6) + String(longitude, 6));
-        status = String(status + "\nSpeed " + String(speed_kph, 0));*/
-        //
-        //Carng(%s,%s&t=m\n\nLatitude:%s\nLongitude:%s\nSpeed:%s\nCourse:%s"
-
-        //modem.sendSMS(sender, status);
       }
       else if ( smsmsg.indexOf("off") >= 0 ) {
         //modem.sendSMS(sender, "Goodby");
@@ -471,28 +332,13 @@ void sim808_sms() {
           modem.deleteSMS(i);
           DEBUG_PRINTLN(F("Disconnected"));
         }
-        //Blynk.notify(F("disconnect Blynk"));
-        //Blynk.disconnect();
-        //if (modem.gprsDisconnect()) Serial.println(F("Disconnect ok"));
-        
-        
-
-        //RESET SIM
-        //digitalWrite(5, LOW);
-        //delay(100);
-        //digitalWrite(5, HIGH);
-      }
-      
+      }    
     }
     else {
       //Serial.println("delete this sms.");
       modem.deleteSMS(i);
     }
-
   }
-
-  //delay(1000);
-
 }
 
 boolean sim808_go_online() {
@@ -528,6 +374,7 @@ boolean sim808_go_online() {
   if (Blynk.connect()) {
     terminal.println(F("Blynk is now online"));
     terminal.flush();
+    online_LED.on();
     blynk = true;
     return true;
   } 
@@ -540,6 +387,7 @@ boolean sim808_go_offline() {
 
   terminal.println(F("Blynk going offline"));
   terminal.flush();
+  online_LED.off();
 
   delay(1000);
   
@@ -590,6 +438,78 @@ void sim808_wakeup() {
   
 }*/
 
+
+/*
+ * Blynk Functions
+ * 
+ */
+BLYNK_CONNECTED() {
+    Blynk.syncAll();
+}
+BLYNK_APP_DISCONNECTED() {
+  //Blynk.notify(F("app disconected"));
+  terminal.println(F("app disconected"));
+}
+BLYNK_APP_CONNECTED() {
+  //Blynk.notify(F("app conected"));
+  terminal.println(F("app conected"));
+  terminal.flush();
+}
+
+BLYNK_WRITE(BLYNK_VIRTUAL_alarm_modus) 
+{   
+  int value = param.asInt(); // Get value as integer
+  INFO_PRINTLN(F("BLYNK_VIRTUAL_alarm_modus triggert"));
+  INFO_PRINTLN(value);
+
+  if ( value == 1 ) {
+    if (!blynk_alarm) {
+      blynk_alarm = true;
+      terminal.println(F("alarm modus on"));
+    
+      alarm_led.on();
+      geofancy_led.off();
+
+      gps_latitude_blynk_geofancy = gps_latitude;
+      gps_longitude_blynk_geofancy = gps_longitude;
+
+      //blynk_geofancy_alarmed = false;
+
+      terminal.print(F("geofancy distance is set to: "));
+      terminal.print(blynk_geofancy_distance);
+      terminal.println(F("m"));
+    }
+  }
+  else {
+    if (blynk_alarm) {
+      blynk_alarm = false;
+      terminal.println(F("alarm modus off"));
+      alarm_led.off();
+      geofancy_led.off();
+      blynk_geofancy_alarmed = false;
+      #ifdef ONLINE_INTERVALL
+      online_intervall_timer = millis() + 30000; // 30s to turn off
+      #endif
+    }
+  }
+  terminal.flush();
+}
+
+BLYNK_WRITE(BLYNK_VIRTUAL_geofancy_distance) 
+{
+  int value = param.asInt(); // Get value as integer
+  if ( value != blynk_geofancy_distance ) {
+    INFO_PRINTLN(F("set geo-fance distance"));
+    INFO_PRINTLN(value);
+    blynk_geofancy_distance = value;
+
+    terminal.print(F("geo-fance distance is set to: "));
+    terminal.print(blynk_geofancy_distance);
+    terminal.println(F("m"));
+    terminal.flush();
+  }
+  
+}
 
 
 

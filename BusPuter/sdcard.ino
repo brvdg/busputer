@@ -121,93 +121,91 @@ void sdcard_open_config() {
 
   while ((n = rdfile.fgets(replybuffer, sizeof(replybuffer))) > 0) {
     tmp = String(replybuffer);
-    DEBUG_PRINTLN(tmp);
+    //DEBUG_PRINTLN(tmp);
     if ( tmp.startsWith("#") ) {
       //DEBUG_PRINTLN(F("found comment"));
     }
     // Speed
     else if ( tmp.startsWith("speed_offset=") ) {
-      DEBUG_PRINTLN(F("found config for speed_offset"));
-      
-      DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
+      //DEBUG_PRINTLN(F("found config for speed_offset"));
+      //DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
     }
     else if ( tmp.startsWith("speed_source=") ) {
-      DEBUG_PRINTLN(F("found config for speed_source"));
-      
+      //DEBUG_PRINTLN(F("found config for speed_source"));
       speed_source = getValue( tmp, '=', 1 ).toInt();
       //DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
     }
     else if ( tmp.startsWith("speedpulse_port=") ) {
-      DEBUG_PRINTLN(F("found config speedpulse_port"));
+      //DEBUG_PRINTLN(F("found config speedpulse_port"));
       
-      DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
+      //DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
     }
 
     // RPM
     else if ( tmp.startsWith("rpm_port=") ) {
-      DEBUG_PRINTLN(F("found config for rpm_port"));
+      //DEBUG_PRINTLN(F("found config for rpm_port"));
       rpm_port = getValue( tmp, '=', 1 ).toInt();
       //DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
     }
     else if ( tmp.startsWith("rpm_multip=") ) {
-      DEBUG_PRINTLN(F("found config for rpm_multip"));
+      //DEBUG_PRINTLN(F("found config for rpm_multip"));
       rpm_multip = getValue( tmp, '=', 1 ).toFloat();
       //DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
     }
 
     else if ( tmp.startsWith("bord_voltage_port=") ) {
-      DEBUG_PRINTLN(F("found config for bord_voltage_port"));
+      //DEBUG_PRINTLN(F("found config for bord_voltage_port"));
       bord_voltage_port = getValue( tmp, '=', 1 ).toInt();
-      DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
+      //DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
     }
     else if ( tmp.startsWith("fuel_port=") ) {
-      DEBUG_PRINTLN(F("found config for fuel_port"));
-      DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
+      //DEBUG_PRINTLN(F("found config for fuel_port"));
+      //DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
     }
     else if ( tmp.startsWith("water_temp_port=") ) {
-      DEBUG_PRINTLN(F("found config for water_temp_port"));
-      DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
+      //DEBUG_PRINTLN(F("found config for water_temp_port"));
+      //DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
     }
     else if ( tmp.startsWith("door_port=") ) {
-      DEBUG_PRINTLN(F("found config for door_port"));
-      DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
+      //DEBUG_PRINTLN(F("found config for door_port"));
+      //DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
     }
     else if ( tmp.startsWith("dimmer_port=") ) {
-      DEBUG_PRINTLN(F("found config for dimmer_port"));
-      DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
+      //DEBUG_PRINTLN(F("found config for dimmer_port"));
+      //DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
     }
     else if ( tmp.startsWith("temp_out=") ) {
-      DEBUG_PRINTLN(F("found config temp_out"));
-      DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
+      //DEBUG_PRINTLN(F("found config temp_out"));
+      //DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
     }
     else if ( tmp.startsWith("rpm_multip=") ) {
-      DEBUG_PRINTLN(F("found config"));
-      DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
+      //DEBUG_PRINTLN(F("found config"));
+      //DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
     }
     else if ( tmp.startsWith("rpm_multip=") ) {
-      DEBUG_PRINTLN(F("found config"));
-      DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
+      //DEBUG_PRINTLN(F("found config"));
+      //DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
     }
     // SIM808
     else if ( tmp.startsWith("sim_apn=") ) {
-      DEBUG_PRINTLN(F("found sim_apn"));
+      //DEBUG_PRINTLN(F("found sim_apn"));
       sim_apn=getValue( tmp, '=', 1 );
-      DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
+      //DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
     }
     else if ( tmp.startsWith("sim_user=") ) {
-      DEBUG_PRINTLN(F("found sim_user"));
+      //DEBUG_PRINTLN(F("found sim_user"));
       sim_user=getValue( tmp, '=', 1 );
-      DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
+      //DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
     }
     else if ( tmp.startsWith("sim_pass=") ) {
-      DEBUG_PRINTLN(F("found sim_pass"));
+      //DEBUG_PRINTLN(F("found sim_pass"));
       sim_pass=getValue( tmp, '=', 1 );
-      DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
+      //DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
     }
     else if ( tmp.startsWith("blynk_key=") ) {
-      DEBUG_PRINTLN(F("found blynk_key"));
+      //DEBUG_PRINTLN(F("found blynk_key"));
       blynk_key=getValue( tmp, '=', 1 );
-      DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
+      //DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
     }
     else {
       //INFO_PRINT(F("unknown config: "));

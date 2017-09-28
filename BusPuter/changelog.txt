@@ -1,3 +1,8 @@
+Version 0.8 Build 1700928a
+- adding functions to go online periodicly or permanent if ignition ist turned off
+- adding more values for Blynk
+
+
 Version 0.8 
 Based on Hardware rev 0.8
 - changing from Adafruit FONA library to TinyGSM

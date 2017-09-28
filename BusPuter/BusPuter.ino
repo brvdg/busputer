@@ -8,7 +8,7 @@
 
 
 #define VERSION "0.8"
-#define BUILD "1700919a"
+#define BUILD "1700928a"
 
 // include configuration file
 #include "config.h"
@@ -25,8 +25,8 @@
 /*
  * Blynk definations
  */
-#define BLYNK_PRINT Serial // Defines the object that is used for printing
-#define BLYNK_DEBUG        // Optional, this enables more detailed prints
+//#define BLYNK_PRINT Serial // Defines the object that is used for printing
+//#define BLYNK_DEBUG        // Optional, this enables more detailed prints
 
 // Select your modem:
 //#define TINY_GSM_MODEM_SIM800
