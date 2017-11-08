@@ -17,21 +17,9 @@ double si7021_humidity;
 #endif // SI7021
 
 
-
-/*#ifdef SI7021_AS_IN
-#define TEMPERATURE_IN
-#define HUMIDITY_IN
-#endif // SI7021_AS_IN
-#ifdef SI7021_AS_OUT
-#define TEMPERATURE_OUT
-#define HUMIDITY_OUT
-#endif // SI7021_AS_OUT
-*/
-
-
 //const int ADDR =0x40;
-int X0,X1,Y0,Y1,Y2,Y3;
-double X,Y,X_out,Y_out1,Y_out2;
+//int X0,X1,Y0,Y1,Y2,Y3;
+//double X,Y,X_out,Y_out1,Y_out2;
 
 
 void i2c_init() {
@@ -42,7 +30,7 @@ void i2c_init() {
   byte error, address;
   int nDevices;
 
-  Serial.println("Scanning...");
+  TRACE_PRINTLN(F("#Scanning..."));
 
   Wire.begin();
   delay(100);
@@ -53,44 +41,89 @@ void i2c_init() {
     // The i2c_scanner uses the return value of
     // the Write.endTransmisstion to see if
     // a device did acknowledge to the address.
+    TRACE_PRINTLN(address);
     Wire.beginTransmission(address);
     error = Wire.endTransmission();
 
     if (error == 0)
     {
       INFO_PRINT(F("#I2C device found at address 0x"));
-      if (address<16) 
+      if (address<16) {
         INFO_PRINT("0");
+      }
+      
       INFO_PRINTHEX(address);
       INFO_PRINTLN(F("  !"));
 
       switch(address) {
         case 64:
+        //case 76:
           si7021_available = true;
-          INFO_PRINTLN(F("SI7021 found"));
-          delay(2000);
+          //INFO_PRINTLN(F("#SI7021 found!"));
+          display_bootmsg(F("SI7021 found"));
+          //delay(2000);
+          break;
+        case 0x70:
+          //si7021_available = true;
+          //INFO_PRINTLN(F("#HT16K33 found!"));
+          display_bootmsg(F("HT16K33 found"));
+          //delay(2000);
+          break;
+        case 0x48:
+          //si7021_available = true;
+          //INFO_PRINTLN(F("#ADS1115 found!"));
+          display_bootmsg(F("ADS1115 found"));
+          //delay(2000);
+          break;
+        case 0x76:
+          bmp280_available = true;
+          //INFO_PRINTLN(F("#BMP280 found!"));
+          display_bootmsg(F("BMP280 found"));
+          //delay(2000);
+          break;
+        case 0x49:
+          lm75_1_available = true;
+          //INFO_PRINTLN(F("#LM75 (#1) found!"));
+          display_bootmsg(F("LM75 (#1) found"));
+          //delay(2000);
+          break;
+        case 0x4A:
+          lm75_2_available = true;
+          //INFO_PRINTLN(F("#LM75 (#2) found!"));
+          display_bootmsg(F("LM75 (#2) found"));
+          //delay(2000);
           break;
       }
+      
 
       nDevices++;
     }
     else if (error==4) 
     {
       INFO_PRINT(F("#Unknow error at address 0x"));
-      if (address<16) 
+      if (address<16) {
         INFO_PRINT("0");
+      }
       INFO_PRINTHEX(address);
       INFO_PRINTLN("  !");
     }    
   }
-  if (nDevices == 0)
-    DEBUG_PRINT(F("No I2C devices found\n"));
-  else
+  
+  /*if (nDevices == 0) {
+    DEBUG_PRINT(F("#No I2C devices found\n"));
+  }
+  else {
     DEBUG_PRINT(F("done\n"));
+  }*/
 
 
+  
 
-  if ( si7021_available ) {
+  #ifdef SI7021
+  /*if ( si7021_available ) {
+    Wire.beginTransmission(0x40);
+    delay(200);
+  
     if ( temp_out_port == 0 ) {
       temp_out_port = 2;
     }
@@ -99,17 +132,12 @@ void i2c_init() {
     if ( temp_out_port == 2 ) {
       temp_out_port = 0;
     }
-  }
+  }*/
+  #endif
   
   //Wire.begin();
   delay(100);
-
-  #ifdef SI7021
-  Wire.beginTransmission(0x40);
-  delay(200);
-  #endif
-
-   
+     
   Wire.endTransmission();
 }
 
@@ -123,6 +151,9 @@ void i2c_loop() {
       #ifdef SI7021
       if (si7021_available) i2c_get_si7021();
       #endif // SI7021
+
+      if (lm75_1_available) i2c_get_lm75(1);
+      if (lm75_2_available) i2c_get_lm75(2);
       
       I2C_lock = false;
     }
@@ -185,6 +216,43 @@ void i2c_get_si7021() {
 }
 #endif // SI7021
 
+// LM75 Temperatur auslesen. Device = 0-7, regx = TEMP, OBEN, UNTEN (Registerauswahl)  
+// http://www.horter.de/i2c/i2c-beispiele/arduino_1.html
+
+void i2c_get_lm75(int device) 
+{
+  byte msb;
+  byte lsb;
+  byte msb1;
+  byte regx = 0;
+  double value = 0;
+  Wire.beginTransmission(0x48 + device);
+  Wire.write(regx);
+  Wire.endTransmission();
+  Wire.beginTransmission(0x48 + device);
+  Wire.requestFrom(0x48 + device, 2);
+  if (Wire.available()) {
+     msb1 = Wire.read();
+     msb = msb1 << 1; // Vorzeichenbit entfernen, verbliebener Wert ist nun doppelt so groß
+     lsb = Wire.read();
+  }
+  // höchstes bit von lsb sagt aus, ob 0,5 Grad dazu addiert werden sollen
+  lsb = (lsb & 0x80 ) >> 7; // nun ist lsb = 0 oder 1
+  Wire.endTransmission();
+  if (msb1 < 0x80) { // Positiver Wert?
+    value = float (msb + lsb)/2; // positiver Wert
+  }  
+  else {
+    value = float (msb + lsb)/2 - 128; // negativer Wert
+  }  
+
+  switch(device){
+    case 1: lm75_1_temp = value; break;
+    case 2: lm75_2_temp = value; break;
+    default: lm75_1_temp = value; break;
+  }
+  //Serial.println(value);
+}
 
 #endif // I2C
 

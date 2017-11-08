@@ -204,7 +204,9 @@ void menu_clock() {
  * SPEED
  */
 void menu_speed() {
-  
+  if ( !engine_running) {
+    MainMenuPos++;
+  }
   u8g2.setFont(big_font);
   u8g2.setFontPosTop();
   u8g2.setCursor(LAYOUT2_1_X, LAYOUT2_1_Y);
@@ -222,10 +224,10 @@ void menu_speed() {
     u8g2.setFont(medium_font);
     u8g2.setFontPosTop();
     u8g2.setCursor(LAYOUT2_3_X, LAYOUT2_3_Y);
-    uint16_t m = temp_out - ( temp_out/10 ) * 10;
-    sprintf (buf, "%02d.%1d", temp_out/10, m);
-
+    int m = (temp_out - ( (int) temp_out ))*10;
+    sprintf (buf, "%02d.%1d", (int)temp_out, m);
     u8g2.print(buf);
+    //u8g2.print(temp_out, 1);
     u8g2.print(F("\xb0"));
     u8g2.print(F("C"));
   }
@@ -312,19 +314,20 @@ void menu_trip() {
   u8g2.setFont(medium_font);
   u8g2.setCursor(LAYOUT4_2_X, LAYOUT4_2_Y);
   //u8g2.print(F("Dist: "));
-  uint16_t m = gps_distance_trip - ( gps_distance_trip / 1000 ) * 1000;
-  sprintf (buf, "%04d.%1d km", gps_distance_trip / 1000, m / 100);
+  uint16_t m = gps_distance - ( gps_distance / 1000 ) * 1000;
+  sprintf (buf, "%04d.%1d km", gps_distance / 1000, m / 100);
 
   u8g2.print(buf);
   u8g2.setFont(small_font);
   u8g2.setCursor(LAYOUT4_3_X, LAYOUT4_3_Y);
 
+  long tmp = engine_running_total + engine_running_sec;
   //u8g2.print(F("travel time: "));
   u8g2.print(F("in "));
-  u8g2.print(engine_running_sec/3600, DEC);
+  u8g2.print(tmp/3600, DEC);
   u8g2.print(F("h "));
 //  if ( engine_running_sec > 3600 ) {
-  u8g2.print((engine_running_sec - ((engine_running_sec/3600) * 3600)) / 60 , DEC);
+  u8g2.print((tmp - ((tmp/3600) * 3600)) / 60 , DEC);
   u8g2.print(F("min"));
 
   switch (button_1) {
@@ -332,7 +335,7 @@ void menu_trip() {
     case 2:
       gps_distance_trip = 0;
       gps_speed_max_trip = 0;
-      engine_running_trip_last = 0 - engine_running_sec;
+      engine_running_total = 0;
       break;
   }
   button_1 = 0;
@@ -395,153 +398,128 @@ void menu_clima() {
   if ( temp_out_port == 0 ) {
     MainMenuPos++;
     
+  } else {
+    // use a different layout if humidity exists
+    if ( hum_out > 0 ) {
+      u8g2.setFont(small_font);
+      u8g2.setFontPosTop();
+      u8g2.setCursor(LAYOUT4_1_X, LAYOUT4_1_Y);
+      u8g2.print(F("Klima Aussen:"));
+
+      u8g2.setFont(medium_font);
+      u8g2.setCursor(LAYOUT4_2_X + 22, LAYOUT4_2_Y);
+
+      m = (temp_out - ( (int) temp_out ))*10;
+      sprintf (buf, "%02d.%1d", (int)temp_out, m);
+      u8g2.print(buf);
+      
+      //u8g2.print(temp_out, 1);
+      u8g2.print(F("\xb0"));
+      u8g2.print(F("C"));
+  
+      u8g2.setFont(small_font);
+      u8g2.setCursor(LAYOUT4_3_X + 28, LAYOUT4_3_Y);
+  
+      sprintf (buf, "%02d", hum_out);
+      u8g2.print(buf);
+      u8g2.print(F("%"));
+    }
+    else {
+      u8g2.setFont(small_font);
+      u8g2.setFontPosTop();
+      u8g2.setCursor(LAYOUT3_1_X, LAYOUT3_1_Y);
+      u8g2.print(F("Klima Aussen:"));
+
+      u8g2.setFont(big_font);
+      u8g2.setCursor(LAYOUT3_2_X, LAYOUT3_2_Y);
+
+      m = (temp_out - ( (int) temp_out ))*10;
+      sprintf (buf, "%02d.%1d", (int)temp_out, m);
+      u8g2.print(buf);
+      
+      u8g2.setFont(small_font);
+      u8g2.setCursor(LAYOUT3_3_X, LAYOUT3_3_Y);
+      u8g2.print(F("\xb0"));
+      u8g2.print(F("C"));
+    }
+    switch (button_1) {
+      case 1: MainMenuPos++; break;
+      //case 2: MainMenuPos = SubMenu3Nr; break;
+    }
+    button_1 = 0;
+  } 
+}
+
+
+
+/*
+ * Dynamic Menu for all define values
+ */
+void menu_values() {
+  if ( *values[MenuValuesPos].port == 0 ) {
+    if (MenuValuesPos+1 >= (sizeof(values) / sizeof(values[0])) ) {
+      MainMenuPos++; 
+      MenuValuesPos = 0;
+    } else {
+      MenuValuesPos++;
+    }
   }
-  // use a different layout if humidity exists
-  if ( hum_out > 0 ) {
-    u8g2.setFont(small_font);
-    u8g2.setFontPosTop();
-    u8g2.setCursor(LAYOUT4_1_X, LAYOUT4_1_Y);
-    u8g2.print(F("Klima Aussen:"));
-
-    u8g2.setFont(medium_font);
-    u8g2.setCursor(LAYOUT4_2_X + 22, LAYOUT4_2_Y);
-
-    m = temp_out - ( temp_out/10 ) * 10;
-    sprintf (buf, "%02d.%1d", temp_out/10, m);
-    u8g2.print(buf);
-    u8g2.print(F("\xb0"));
-    u8g2.print(F("C"));
-  
-    u8g2.setFont(small_font);
-    u8g2.setCursor(LAYOUT4_3_X + 28, LAYOUT4_3_Y);
-  
-    sprintf (buf, "%02d", hum_out);
-    u8g2.print(buf);
-    u8g2.print(F("%"));
+  else if ( !values[MenuValuesPos].show_off && !engine_running) {
+    if (MenuValuesPos+1 >= (sizeof(values) / sizeof(values[0])) ) {
+      MainMenuPos++; 
+      MenuValuesPos = 0;
+    } else {
+      MenuValuesPos++;
+    }
   }
   else {
     u8g2.setFont(small_font);
     u8g2.setFontPosTop();
     u8g2.setCursor(LAYOUT3_1_X, LAYOUT3_1_Y);
-    u8g2.print(F("Klima Aussen:"));
-
+    u8g2.print(values[MenuValuesPos].desc);
     u8g2.setFont(big_font);
+    u8g2.setFontPosTop();
     u8g2.setCursor(LAYOUT3_2_X, LAYOUT3_2_Y);
 
-    m = temp_out - ( temp_out/10 ) * 10;
-    sprintf (buf, "%02d.%1d", temp_out/10, m);
-    u8g2.print(buf);
+    int digits = 1;
+    if ( *values[MenuValuesPos].value > 999 ) {
+      digits = 4;
+    }
+    else if ( *values[MenuValuesPos].value > 99 ) {
+      digits = 3;
+    }
+    else if ( *values[MenuValuesPos].value > 9 ) {
+      digits = 2;
+    }
+    
+    if ( values[MenuValuesPos].digits != 0 ) {
+      digits += 1 + values[MenuValuesPos].digits;
+    }
 
-    u8g2.setFont(small_font);
+    digits = 4 - digits;
+    for (digits; digits>0; digits--) {
+      u8g2.print(F(" "));
+    }
+    
+    u8g2.print(*values[MenuValuesPos].value, values[MenuValuesPos].digits);
+
+    u8g2.setFont(medium_font);
     u8g2.setCursor(LAYOUT3_3_X, LAYOUT3_3_Y);
-    u8g2.print(F("\xb0"));
-    u8g2.print(F("C"));
+    u8g2.print(values[MenuValuesPos].suffix);
+    
+    switch (button_1) {
+      case 1: 
+        if (MenuValuesPos+1 >= (sizeof(values) / sizeof(values[0])) ) {
+          MainMenuPos++; 
+          MenuValuesPos = 0;
+        } else {
+          MenuValuesPos++;
+        }
+        break;          
+      case 2: MainMenuPos--; break;
+    }
+    button_1 = 0; 
   }
-  switch (button_1) {
-    case 1: MainMenuPos++; break;
-      //case 2: MainMenuPos = SubMenu3Nr; break;
-  }
-  button_1 = 0;
-}
-
-
-/*
- * Water temperatur
- */
-void menu_water_temp() {
-  if (water_temp_port == 0 ) {
-    MainMenuPos++;
-  }
-  u8g2.setFont(small_font);
-  u8g2.setFontPosTop();
-  u8g2.setCursor(LAYOUT3_1_X, LAYOUT3_1_Y);
-  u8g2.print(F("Wasser Temperatur:"));
-
-  u8g2.setFont(big_font);
-  u8g2.setCursor(LAYOUT3_2_X, LAYOUT3_2_Y);
-  sprintf (buf, "%3d", water_temp);
-  u8g2.print(buf);
-
-  u8g2.setFont(medium_font);
-  u8g2.setCursor(LAYOUT3_3_X, LAYOUT3_3_Y);
-  u8g2.print(F("\xb0"));
-  u8g2.print(F("C"));
-
-  switch (button_1) {
-    case 1: MainMenuPos++; break;
-      //case 2: MainMenuPos = SubMenu3Nr; break;
-  }
-  button_1 = 0;
-}
-
-/*
- * Bord Voltage
- */
-void menu_power() {
-
-  u8g2.setFont(small_font);
-  u8g2.setFontPosTop();
-  u8g2.setCursor(LAYOUT3_1_X, LAYOUT3_1_Y);
-  u8g2.print(F("Bordspannung:"));
-  u8g2.setFont(big_font);
-  u8g2.setFontPosTop();
-  u8g2.setCursor(LAYOUT3_2_X, LAYOUT3_2_Y);
-  u8g2.print(bord_voltage, 1);
-  u8g2.setFont(medium_font);
-  u8g2.setFontPosTop();
-  u8g2.setCursor(LAYOUT3_3_X, LAYOUT3_3_Y);
-  u8g2.print("V");
-
-  switch (button_1) {
-    case 1: MainMenuPos++; break;
-    case 2: MainMenuPos--; break;
-  }
-  button_1 = 0;
-}
-
-/*
- * Fuel Informations
- */
-void menu_fuel() {
-  u8g2.setFont(small_font);
-  u8g2.setFontPosTop();
-  u8g2.setCursor(LAYOUT3_1_X, LAYOUT3_1_Y);
-  u8g2.print(F("Tank:"));
-  u8g2.setFont(big_font);
-  u8g2.setFontPosTop();
-  u8g2.setCursor(LAYOUT3_2_X, LAYOUT3_2_Y);
-  u8g2.print(fuel_l, 1);
-  u8g2.setFont(medium_font);
-  u8g2.setFontPosTop();
-  u8g2.setCursor(LAYOUT3_3_X, LAYOUT3_3_Y);
-  u8g2.print("l");
-
-  switch (button_1) {
-    case 1: MainMenuPos++; break;
-    case 2: MainMenuPos--; break;
-  }
-  button_1 = 0; 
-}
-
-/*
- * RPM
- */
-void menu_rpm() {
-  u8g2.setFont(small_font);
-  u8g2.setFontPosTop();
-  u8g2.setCursor(LAYOUT3_1_X, LAYOUT3_1_Y);
-  u8g2.print(F("RPM:"));
-  u8g2.setFont(big_font);
-  u8g2.setFontPosTop();
-  u8g2.setCursor(LAYOUT3_2_X, LAYOUT3_2_Y);
-  
-  u8g2.print(rpm);
-  
-  switch (button_1) {
-    case 1: MainMenuPos++; break;
-    case 2: MainMenuPos--; break;
-  }
-  button_1 = 0; 
 }
 
 /*
@@ -576,6 +554,10 @@ void menu_info() {
  */
 void menu_optionen() {
 
+  if ( engine_running) {
+    MainMenuPos++;
+  }
+
   u8g2.setFont(medium_font);
   u8g2.setFontPosTop();
   u8g2.setCursor(Xpos + 10, Ypos + 10);
@@ -589,173 +571,71 @@ void menu_optionen() {
   button_1 = 0;
 }
 
-void menu_opt_temp_out() {
-
-  u8g2.setFont(small_font);
-  u8g2.setFontPosTop();
-  u8g2.setCursor(Xpos, Ypos);
-  u8g2.print(F("Temperatur Out:"));
-
-  u8g2.setCursor(Xpos + 10, Ypos + 10);
+/*
+ * Dynamic Menu for config parameters
+ */
+void menu_opt_config() {
   
-  switch (temp_out_port) {
-    case 0: u8g2.print(F("kein Sensor")); break;
-    case 1: u8g2.print(F("OneWire Sensor")); break;
-    case 2: u8g2.print(F("SI7021 Sensor")); break;
-    default: temp_out_port = 0;
+  if ( port_config[MenuConfigPos].steps == 0 ) {
+    if (MenuConfigPos+1 >= (sizeof(port_config) / sizeof(port_config[0])) ) {
+      MainMenuPos++; 
+      MenuConfigPos = 0;
+    } else {
+      MenuConfigPos++;
+    }
   }
-  
+  else {
+    u8g2.setFont(small_font);
+    u8g2.setFontPosTop();
+    u8g2.setCursor(LAYOUT4_1_X, LAYOUT4_1_Y);
+    u8g2.print(port_config[MenuConfigPos].desc);
+    u8g2.setFont(medium_font);
+    u8g2.setFontPosTop();
+    u8g2.setCursor(LAYOUT4_2_X, LAYOUT4_2_Y);
 
-  switch (button_1) {
-    case 1: MainMenuPos++; break;
-    case 2: temp_out_port++; break;
+    u8g2.print(*port_config[MenuConfigPos].port);
+
+    u8g2.setFont(small_font);
+    u8g2.setCursor(LAYOUT4_3_X, LAYOUT4_3_Y);
+
+    if ( MenuEdit ) {
+      u8g2.print(F("long -> accept"));
+    }
+    else {
+      u8g2.print(F("long -> edit"));
+    }
+
+    
+    switch (button_1) {
+      case 1: 
+        if ( MenuEdit ) {
+          *port_config[MenuConfigPos].port = *port_config[MenuConfigPos].port + port_config[MenuConfigPos].steps;
+          if ( *port_config[MenuConfigPos].port > port_config[MenuConfigPos].max ) {
+            *port_config[MenuConfigPos].port = 0;
+          }
+        }
+        else {
+          if (MenuConfigPos+1 >= (sizeof(port_config) / sizeof(port_config[0])) ) {
+            MainMenuPos++; 
+            MenuConfigPos = 0;
+          } else {
+            MenuConfigPos++;
+          }
+        }
+        break;          
+      case 2: 
+        if ( MenuEdit ) {
+          MenuEdit = false;
+        }
+        else {
+          MenuEdit = true;
+        }
+        break;
+    }
+    button_1 = 0; 
   }
-  button_1 = 0;
 }
 
-void menu_opt_rpm() {
-
-  u8g2.setFont(small_font);
-  u8g2.setFontPosTop();
-  u8g2.setCursor(Xpos, Ypos);
-  u8g2.print(F("RPM Input:"));
-
-  u8g2.setCursor(Xpos + 10, Ypos + 10);
-  
-  switch (rpm_port) {
-    case 0: u8g2.print(F("aus")); break;
-    case 1: u8g2.print(F("Eingang 1")); break;
-    case 2: u8g2.print(F("Eingang 2")); break;
-    case 3: u8g2.print(F("Eingang 3")); break;
-    case 4: u8g2.print(F("Eingang 4")); break;
-    case 5: u8g2.print(F("Eingang 5")); break;
-    case 6: u8g2.print(F("Eingang 6")); break;
-    default: rpm_port = 0;
-  }
-  
-
-  switch (button_1) {
-    case 1: MainMenuPos++; break;
-    case 2: rpm_port++; break;
-  }
-  button_1 = 0;
-}
-
-void menu_opt_bord_voltage() {
-
-  u8g2.setFont(small_font);
-  u8g2.setFontPosTop();
-  u8g2.setCursor(Xpos, Ypos);
-  u8g2.print(F("Bordspannung Input:"));
-
-  u8g2.setCursor(Xpos + 10, Ypos + 10);
-  
-  switch (bord_voltage_port) {
-    case 0: u8g2.print(F("aus")); break;
-    case 1: u8g2.print(F("Eingang 1")); break;
-    case 2: u8g2.print(F("Eingang 2")); break;
-    case 3: u8g2.print(F("Eingang 3")); break;
-    case 4: u8g2.print(F("Eingang 4")); break;
-    case 5: u8g2.print(F("Eingang 5")); break;
-    case 6: u8g2.print(F("Eingang 6")); break;
-    default: bord_voltage_port = 0;
-  }
-  
-
-  switch (button_1) {
-    case 1: MainMenuPos++; break;
-    case 2: bord_voltage_port++; break;
-  }
-  button_1 = 0;
-}
-
-void menu_opt_ki_dimmer() {
-
-  u8g2.setFont(small_font);
-  u8g2.setFontPosTop();
-  u8g2.setCursor(Xpos, Ypos);
-  u8g2.print(F("Bel. Kombi Instr.:"));
-
-  u8g2.setCursor(Xpos + 10, Ypos + 10);
-  
-  switch (dimmer_port) {
-    case 0: u8g2.print(F("aus")); break;
-    case 1: u8g2.print(F("Eingang 1")); break;
-    case 2: u8g2.print(F("Eingang 2")); break;
-    case 3: u8g2.print(F("Eingang 3")); break;
-    case 4: u8g2.print(F("Eingang 4")); break;
-    case 5: u8g2.print(F("Eingang 5")); break;
-    case 6: u8g2.print(F("Eingang 6")); break;
-    default: dimmer_port = 0;
-  }
-  
-
-  switch (button_1) {
-    case 1: MainMenuPos++; break;
-    case 2: dimmer_port++; break;
-  }
-  button_1 = 0;
-}
-
-void menu_opt_speed() {
-
-  u8g2.setFont(small_font);
-  u8g2.setFontPosTop();
-  u8g2.setCursor(Xpos, Ypos);
-  u8g2.print(F("Speed Source:"));
-
-  u8g2.setCursor(Xpos + 10, Ypos + 10);
-  
-  switch (speed_source) {
-    case 0: u8g2.print(F("GPS+Speedpulse")); break;
-    case 1: u8g2.print(F("Speedpulse")); break;
-    case 2: u8g2.print(F("GPS")); break;
-    default: speed_source = 0;
-  }
-  
-
-  switch (button_1) {
-    case 1: MainMenuPos++; break;
-    case 2: speed_source++; break;
-  }
-  button_1 = 0;
-}
-
-void menu_opt_dimmer_min() {
-
-  u8g2.setFont(small_font);
-  u8g2.setFontPosTop();
-  u8g2.setCursor(Xpos, Ypos);
-  u8g2.print(F("Dimmer Minimum:"));
-
-  u8g2.setCursor(Xpos + 10, Ypos + 10);
-
-  u8g2.print(dimmer_min, DEC);
-  
-  switch (button_1) {
-    case 1: MainMenuPos++; break;
-    case 2: dimmer_min++; break;
-  }
-  button_1 = 0;
-}
-
-void menu_opt_dimmer_max() {
-
-  u8g2.setFont(small_font);
-  u8g2.setFontPosTop();
-  u8g2.setCursor(Xpos, Ypos);
-  u8g2.print(F("Dimmer Maximum:"));
-
-  u8g2.setCursor(Xpos + 10, Ypos + 10);
-
-  u8g2.print(dimmer_min, DEC);
-  
-  switch (button_1) {
-    case 1: MainMenuPos++; break;
-    case 2: dimmer_max++; break;
-  }
-  button_1 = 0;
-}
 
 void menu_save_config() {
 

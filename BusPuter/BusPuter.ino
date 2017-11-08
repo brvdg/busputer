@@ -8,7 +8,7 @@
 
 
 #define VERSION "0.8"
-#define BUILD "1700928a"
+#define BUILD "171108a"
 
 // include configuration file
 #include "config.h"
@@ -22,12 +22,13 @@
 #include <avr/dtostrf.h>
 
 
+#include <SDU.h>
+
+
 /*
  * Blynk definations
  */
-//#define BLYNK_PRINT Serial // Defines the object that is used for printing
-//#define BLYNK_DEBUG        // Optional, this enables more detailed prints
-
+#ifdef TinyGSM
 // Select your modem:
 //#define TINY_GSM_MODEM_SIM800
 #define TINY_GSM_MODEM_SIM808
@@ -36,7 +37,7 @@
 //#define TINY_GSM_MODEM_M590
 #include <TinyGsmClient.h>
 #include <BlynkSimpleSIM800.h>
-
+#endif // TinyGSM
 
 
 
@@ -94,6 +95,8 @@ void setup() {
 
 
   display_bootmsg(F("Booting..."));
+  display_bootmsg(F(BUILD));
+  delay(5000);
   
   /*
    * IO
@@ -133,25 +136,31 @@ void setup() {
     #endif //SDCARD
   }
 
-
   /*
    *  SD Card
    */
   #ifdef SDCARD
   enable_sdcard();
-  get_last_log();
+  //get_last_log();
   #endif //SDCARD
 
   /*
    * open the configuration
    */
   open_config();
+  
+  /*
+   *  Check the logs
+   */
+  #ifdef SDCARD
+  get_last_log();
+  #endif //SDCARD
 
   /*
-   * Simcom SIM808
+   * Simcom TinyGSM
    */
-  #ifdef SIM808
-  sim808_init();
+  #ifdef TinyGSM
+  tinygsm_init();
   #endif
 
   /*
@@ -168,10 +177,27 @@ void setup() {
   i2c_init();
   #endif // I2C
 
+  /*
+   * decide the temp sensors
+   */
+  if ( lm75_1_available ) {
+    temp_out_port = 1;
+    INFO_PRINTLN(F("LM75 for temp. out"));
+  }
+  else if ( onewire_available ) {
+    temp_out_port = 2;
+    INFO_PRINTLN(F("DS18B20 for temp. out"));
+  }
+  else {
+    INFO_PRINTLN(F("nothing for temp. out"));
+  }
+
   
   #ifdef U8G2_DISPLAY 
   MainMenuPos = 1;
   #endif // LCD
+
+  
 
   /*
    * RTC
@@ -219,6 +245,9 @@ void setup() {
   #endif // CUSTOM
 
 
+  
+
+
   display_bootmsg(F("Ready"));
 
   set_alarm(100,50,2, false);
@@ -238,9 +267,9 @@ void loop() {
   digitalWrite(FeatherLED8, HIGH);
   #endif FeatherLED8
   
-  #ifdef SIM808
+  #ifdef TinyGSM
   //if (engine_running) {
-    sim808_loop();
+    tinygsm_loop();
   //}
   #endif
 
@@ -259,14 +288,17 @@ void loop() {
 
   update_vars();
 
+  #ifdef SDCARD
+  if ( engine_running ) {
+    log_to_sdcard();
+  }
+  #endif
+
   #ifdef PRINT_STATUS
   print_status();
   #endif // PRINT_STATUS
 
-  // at least custom functions
-  #ifdef CUSTOM
-  custom_loop();
-  #endif // CUSTOM
+
 
   IO_loop();
 
@@ -279,10 +311,17 @@ void loop() {
 
   button();
 
+  // Status Checker
+  status_checker();
+
   alarm = 1;
   //make_alarm();
   alarm_loop();
 
+  // at least custom functions
+  #ifdef CUSTOM
+  custom_loop();
+  #endif // CUSTOM
 }
 
 /*

@@ -93,11 +93,12 @@ void enable_sdcard() {
     }
     if (!SD.fsBegin()) {
       SPI_lock = false;
-      display_bootmsg(F("File System initialization failed."));
+      display_bootmsg(F("FS init failed."));
       SPI_lock = true;
       delay(1000);
       //return;
       SDmount = false;
+      NVIC_SystemReset();      // processor software reset
     }
     SPI_lock = false;
   }
@@ -111,6 +112,8 @@ void sdcard_open_config() {
   TRACE_PRINTLN(F("#->open_config"));
   String tmp;
   int n;
+
+  display_bootmsg(F("Open Config"));
 
   SdFile rdfile("config.txt", O_READ);
 
@@ -126,67 +129,33 @@ void sdcard_open_config() {
       //DEBUG_PRINTLN(F("found comment"));
     }
     // Speed
-    else if ( tmp.startsWith("speed_offset=") ) {
+    //else if ( tmp.startsWith("speed_offset=") ) {
       //DEBUG_PRINTLN(F("found config for speed_offset"));
       //DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
-    }
-    else if ( tmp.startsWith("speed_source=") ) {
+    //}
+    //else if ( tmp.startsWith("speed_source=") ) {
       //DEBUG_PRINTLN(F("found config for speed_source"));
-      speed_source = getValue( tmp, '=', 1 ).toInt();
+      //speed_source = getValue( tmp, '=', 1 ).toInt();
+      //DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
+    //}
+    else if ( tmp.startsWith("rpm_multipl=") ) {
+      //DEBUG_PRINTLN(F("found config for rpm_multipl"));
+      rpm_multipl = getValue( tmp, '=', 1 ).toFloat();
       //DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
     }
-    else if ( tmp.startsWith("speedpulse_port=") ) {
-      //DEBUG_PRINTLN(F("found config speedpulse_port"));
-      
-      //DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
-    }
-
-    // RPM
-    else if ( tmp.startsWith("rpm_port=") ) {
-      //DEBUG_PRINTLN(F("found config for rpm_port"));
-      rpm_port = getValue( tmp, '=', 1 ).toInt();
-      //DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
-    }
-    else if ( tmp.startsWith("rpm_multip=") ) {
-      //DEBUG_PRINTLN(F("found config for rpm_multip"));
-      rpm_multip = getValue( tmp, '=', 1 ).toFloat();
-      //DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
-    }
-
-    else if ( tmp.startsWith("bord_voltage_port=") ) {
-      //DEBUG_PRINTLN(F("found config for bord_voltage_port"));
-      bord_voltage_port = getValue( tmp, '=', 1 ).toInt();
-      //DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
-    }
-    else if ( tmp.startsWith("fuel_port=") ) {
-      //DEBUG_PRINTLN(F("found config for fuel_port"));
-      //DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
-    }
-    else if ( tmp.startsWith("water_temp_port=") ) {
-      //DEBUG_PRINTLN(F("found config for water_temp_port"));
-      //DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
-    }
-    else if ( tmp.startsWith("door_port=") ) {
-      //DEBUG_PRINTLN(F("found config for door_port"));
-      //DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
-    }
-    else if ( tmp.startsWith("dimmer_port=") ) {
-      //DEBUG_PRINTLN(F("found config for dimmer_port"));
-      //DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
-    }
-    else if ( tmp.startsWith("temp_out=") ) {
+    //else if ( tmp.startsWith("temp_out=") ) {
       //DEBUG_PRINTLN(F("found config temp_out"));
       //DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
-    }
-    else if ( tmp.startsWith("rpm_multip=") ) {
+    //}
+    //else if ( tmp.startsWith("rpm_multip=") ) {
       //DEBUG_PRINTLN(F("found config"));
       //DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
-    }
-    else if ( tmp.startsWith("rpm_multip=") ) {
+    //}
+    //else if ( tmp.startsWith("rpm_multip=") ) {
       //DEBUG_PRINTLN(F("found config"));
       //DEBUG_PRINTLN(getValue( tmp, '=', 1 ));
-    }
-    // SIM808
+    //}
+    // TinyGSM
     else if ( tmp.startsWith("sim_apn=") ) {
       //DEBUG_PRINTLN(F("found sim_apn"));
       sim_apn=getValue( tmp, '=', 1 );
@@ -210,90 +179,135 @@ void sdcard_open_config() {
     else {
       //INFO_PRINT(F("unknown config: "));
       //INFO_PRINTLN(tmp);
+      for (int i = 0; i <= (sizeof(port_config) / sizeof(port_config[0])) - 1; i++){
+        //Serial.println(port_config[i].name);
+        //Serial.println(port_config[i].desc);
+        //Serial.println(*port_config[i].port);
+        if ( tmp.startsWith(port_config[i].name) ) {
+          DEBUG_PRINT(F("found "));
+          DEBUG_PRINTLN(port_config[i].desc);
+          tmp = getValue( tmp, '=', 1 );
+          *port_config[i].port = tmp.toInt();
+          //delay(1500);
+        }
+        
+      }
     }
+
+
+    lastfile = lastfile_config * 10;
     
     
   }
   //delay(5000);
-  
+
+
+  //TRACE_PRINTLN(F("#print pointer..."));
+  /*Serial.println(sizeof(port_config));
+  Serial.println(sizeof(port_config[0]));
+  Serial.println(sizeof(port_config) / sizeof(port_config[0]));
+  for (int i = 0; i <= (sizeof(port_config) / sizeof(port_config[0])) - 1; i++){
+    Serial.println(port_config[i].name);
+    Serial.println(port_config[i].desc);
+    Serial.println(*port_config[i].port);
+  }*/
+
+  //delay( 5000 );
   
 }
 
 void log_to_sdcard() {
-  /*
-   * Logging format (not for KML)
-   * Default values
-   * utctime(yyyymmddHHMMSS),fixstatus,latitude,longitude,altitude,speed,course,view_satellites,used_satellites,distance,bord_voltage
-   * Debugging informations starting with a "#"
-   * optional logging which are not standart starting with two "//" ore some other shit. I don't know yet.
-   */
-  //#ifdef SDCARD
-  TRACE_PRINTLN(F("#->log_to_sdcard"));
-  if ( !SDmount ) return;
-  if ( !SPI_lock ) {
-    SPI_lock = true;
-    digitalWrite(8, HIGH);
-    #ifdef KMLLOG
+  if ( log_timer < millis() ) {
+    log_timer = millis() + LOG_TIMER;
+    TRACE_PRINTLN(F("#->log_to_sdcard"));
+    if ( !SDmount ) return;
+    if ( !SPI_lock ) {
+      SPI_lock = true;
+      digitalWrite(8, HIGH);
+      
 
-    if (filename[0] == '-') {
-      Serial.println(F("#no file opened"));
-    }
-    else {
-    
-      //Serial.println(F("#log to SD Card"));
-      logfile.print(gps_longitude, DEC);
-      logfile.print(F(","));
-      logfile.print(gps_latitude, DEC);
-      logfile.print(F(","));
-      logfile.println(gps_altitude, DEC);
-      logfile.flush();
-      //#else
-
-      logfile.print(F("<!--"));
-//      logfile.print(utc_time);
-      logfile.print(F(","));
-      logfile.print(gps_fixstatus);
-      logfile.print(F(","));
-      logfile.print(gps_latitude, DEC);
-      logfile.print(F(","));
-      logfile.print(gps_longitude, DEC);
-      logfile.print(F(","));
-      logfile.print(gps_altitude, DEC);
-      logfile.print(F(","));
-      logfile.print(gps_speed, DEC);
-      logfile.print(F(","));
-      logfile.print(gps_course, DEC);
-      logfile.print(F(","));
-      logfile.print(gps_view_satellites, DEC);
-      logfile.print(F(","));
-      logfile.print(gps_used_satellites, DEC);
-      logfile.print(F(","));
-      logfile.print(gps_distance, DEC);
-      logfile.print(F(","));
-      logfile.print(bord_voltage, 1);
-      logfile.print(F(","));
-      logfile.print(engine_running_total, DEC);
-      logfile.print(F(","));
-      logfile.println(F("-->"));
-          
-      logfile.flush();
-      if (!logfile.sync() || logfile.getWriteError()) {
-        Serial.println(F("#write error"));
-        SDerror = true;
+      if (filename[0] == '-') {
+        Serial.println(F("#no file opened"));
       }
       else {
-        //Serial.println(F("#write ok"));
+        if ( gps_fixstatus ) {
+          logfile.print(gps_longitude, DEC);
+          logfile.print(F(","));
+          logfile.print(gps_latitude, DEC);
+          logfile.print(F(","));
+          logfile.println(gps_altitude, DEC);
+          logfile.flush();
+        }
+
+
+        minute = rtc.getMinutes();
+        hour = rtc.getHours();
+        day = rtc.getDay();
+        month = rtc.getMonth();
+        year = 2000 + rtc.getYear();
+
+        long running = engine_running_total + engine_running_sec;
+  
+        logfile.print(F("<!--"));
+        logfile.print(year);
+        logfile.print(F("/"));
+        logfile.print(month);
+        logfile.print(F("/"));
+        logfile.print(day);
+        logfile.print(F(" "));
+        logfile.print(hour);
+        logfile.print(F(":"));
+        logfile.print(minute);
+        logfile.print(F(":"));
+        logfile.print(second);
+        logfile.print(F(","));
+        logfile.print(gps_fixstatus);
+        logfile.print(F(","));
+        logfile.print(gps_latitude, DEC);
+        logfile.print(F(","));
+        logfile.print(gps_longitude, DEC);
+        logfile.print(F(","));
+        logfile.print(gps_altitude, DEC);
+        logfile.print(F(","));
+        logfile.print(gps_speed, DEC);
+        logfile.print(F(","));
+        logfile.print(gps_course, DEC);
+        logfile.print(F(","));
+        logfile.print(gps_view_satellites, DEC);
+        logfile.print(F(","));
+        logfile.print(gps_used_satellites, DEC);
+        logfile.print(F(","));
+        logfile.print(gps_distance, DEC);
+        logfile.print(F(","));
+        //logfile.print(bord_voltage, 1);
+        //logfile.print(F(","));
+        logfile.print(engine_running_total, DEC);
+        logfile.print(F(","));
+        
+        logfile.print(running, DEC);
+        logfile.print(F(","));
+        logfile.println(F("-->"));
+            
+        logfile.flush();
+        
+        if (logfile.getWriteError()) {
+          Serial.println(F("#write error"));
+          SDerror = true;
+        }
+        if (!logfile.sync()) {
+          Serial.println(F("#sync error"));
+          SDerror = true;
+        }
       }
+      SPI_lock = false;
     }
-    SPI_lock = false;
+    else {
+      DEBUG_PRINTLN(F("#SPI Bus locked for log_to_sdcard"));
+    }
+    
+    digitalWrite(8, LOW);
+    
   }
-  else {
-    DEBUG_PRINTLN(F("#SPI Bus locked for log_to_sdcard"));
-    //Serial.println(F("#SPI Bus locked"));
-  }
-  digitalWrite(8, LOW);
-  #endif // KMLLOG
-  //#endif
 }
 
 void dump_sd_card() {
@@ -344,40 +358,6 @@ void dump_sd_card() {
 }
 
 
-/* 
- * call back for file timestamps 
- */
-void dateTime(uint16_t* date, uint16_t* time) {
-  #ifdef SDCARD
-  TRACE_PRINTLN(F("#->dateTime"));
-
-  /* using arduino RTC
-  while(I2C_lock);
-  I2C_lock = true;
-  DateTime now = rtc.now();
-  I2C_lock = false;
-
-  minute = now.minute();
-  hour = now.hour();
-  day = now.day();
-  month = now.month();
-  year = now.year();
-  */
-  
-  minute = rtc.getMinutes();
-  hour = rtc.getHours();
-  day = rtc.getDay();
-  month = rtc.getMonth();
-  year = rtc.getYear();
-
-  
-  // return date using FAT_DATE macro to format fields
-  *date = FAT_DATE(year, month, day);
-
-  // return time using FAT_TIME macro to format fields
-  *time = FAT_TIME(hour, minute, second);
-  #endif
-}
 
 
 
@@ -392,18 +372,19 @@ void get_last_log(void) {
     SPI_lock = true;
     
     char filename_tmp[16];
-    char filename[16];
+    char filename[16]; 
     char ch;
     int field = 0;
     int i=0;
     boolean comment = false;
     boolean fileclosed = false;
+    byte nofound_cnt = 0;
   
   
 
     //strcpy(filename_tmp, "TRACK000.LOG");
     strcpy(filename_tmp, "TRACK000.KML");
-    for (uint16_t i = 0; i < 1000; i++) {
+    for (uint16_t i = (lastfile_config * 10); i < 1000; i++) {
       filename_tmp[5] = '0' + i / 100;
       filename_tmp[6] = '0' + i / 10 - (i / 100 * 10);
       filename_tmp[7] = '0' + i % 10;
@@ -412,12 +393,15 @@ void get_last_log(void) {
       if (! SD.exists(filename_tmp)) {
         TRACE_PRINTLN(F(" doesn't exist"));
         //TRACE_PRINT(filename_tmp);
-        break;
+        //break;
+        nofound_cnt++;
+        if ( nofound_cnt >= 50 ) break;
       }
       else {
         TRACE_PRINTLN(F(" exist"));
         strcpy(filename, filename_tmp);
         lastfile = i;
+        lastfile_config = i / 10;
       }
     }
 
@@ -434,47 +418,76 @@ void get_last_log(void) {
     if (dataFile) {
       while (dataFile.available()) {
         ch = dataFile.read();
+        //Serial.print(ch);
         if (ch == '\n') {
           field = 0;
           i = 0;
+          //clear the buffer
+          for (i = 0; i < 200; i++) {
+            replybuffer[i] = '\0';
+          }
           comment = true;
         } else {
+          // searching for field delimiter
           if (ch == ',') {
-            
             if (comment) {
+
+              //Serial.print("###");
+              //Serial.print(field,DEC);
+              //Serial.println(replybuffer);
+              
               switch (field) {
+                
                 case 2: 
                   gps_latitude = atof(replybuffer); 
+                  DEBUG_PRINT(F("#gps_latitude: "));
+                  DEBUG_PRINTLN(gps_latitude);
                   break;
                 case 3: 
                   gps_longitude = atof(replybuffer); 
+                  DEBUG_PRINT(F("#gps_longitude: "));
+                  DEBUG_PRINTLN(gps_longitude);
                   break;
                 case 9: 
                   gps_distance = atoi(replybuffer); 
+                  DEBUG_PRINT(F("#gps_distance: "));
+                  DEBUG_PRINTLN(gps_distance);
                   break;
                 case 11:
-                  engine_running_total_last = atoi(replybuffer);
+                  engine_running_total = atoi(replybuffer);
+                  DEBUG_PRINT(F("#engine_running_total: "));
+                  DEBUG_PRINTLN(engine_running_total);
               }
-            } 
-            else if ( ch == '!' ) {
-              comment = true;
-            }
-            else if ( ch == 'l' ) {
-              fileclosed = true;
-              INFO_PRINTLN("#last file is closed");
+
+              //clear the buffer
+              for (i = 0; i < 200; i++) {
+                replybuffer[i] = '\0';
+              }
+              
+              field++;
+              i = 0;
             }
 
-          
-            for (i = 0; i < 200; i++) {
-              replybuffer[i] = '\0';
-            }
-            field++;
-            i = 0;
             
+          } 
+          else if ( ch == '!' ) {
+            //Serial.print("comment found");
+            comment = true;
+          }
+          else if ( ch == '%' ) {
+            fileclosed = true;
+            INFO_PRINTLN("#last file is closed");
           }
           else {
             replybuffer[i] = ch;
             i++;
+            /*Serial.println(replybuffer);
+            Serial.println(strcmp(replybuffer, "</kml>"));
+            if(strcmp(replybuffer, "</kml>") > 1) {
+              INFO_PRINTLN("#last file is closed");
+              fileclosed = true;
+            }*/
+            
           }
         }
       
@@ -485,13 +498,14 @@ void get_last_log(void) {
         INFO_PRINTLN(F("#last file is not closed..."));
         if (!dataFile.open(filename, O_RDWR | O_CREAT | O_AT_END)) {
           SD.errorHalt(F("opening test.txt for write failed"));
-          delay(2000);
+          //delay(2000);
         }
         else {
           dataFile.println(F("</coordinates>"));
           dataFile.println(F("</LineString>"));
           dataFile.println(F("</Placemark>"));
           dataFile.println(F("</kml>"));
+          dataFile.print(F("<!--%-->"));
           Serial.println(F("#last file now closed"));
         }
         dataFile.close();
@@ -537,12 +551,14 @@ void open_file() {
       TRACE_PRINT(F("#Check file: "));
       TRACE_PRINTLN(filename);
       if (! SD.exists(filename)) {
+        lastfile = i;
+        lastfile_config = i / 10;
         break;
       }
     }
 
-    INFO_PRINT(F("#Last Log:"));
-    INFO_PRINTLN(filename);
+    //INFO_PRINT(F("#Last Log:"));
+    //INFO_PRINTLN(filename);
     
     //logfile = SD.open(filename, O_RDWR | O_CREAT | O_AT_END);
     //logfile.open(filename, O_WRITE);
@@ -585,6 +601,7 @@ void close_file() {
     logfile.println(F("</LineString>"));
     logfile.println(F("</Placemark>"));
     logfile.println(F("</kml>"));
+    logfile.print(F("<!--%-->"));
     #else
     logfile.println(F("#stop engine"));
     #endif
@@ -606,13 +623,13 @@ void sdcard_save_config() {
     SPI_lock = true;
 
     if ( !SD.remove("config.txt")) {
-      INFO_PRINT(F("#can't remove config.txt"));
+      INFO_PRINTLN(F("#can't remove config.txt"));
     }
 
     SdFile::dateTimeCallback(dateTime); 
 
     if ( !logfile.open("config.txt", O_RDWR | O_CREAT | O_AT_END) ) {
-      INFO_PRINT(F("#Couldnt create config.txt"));
+      INFO_PRINTLN(F("#Couldnt create config.txt"));
     }
     else {
     
@@ -620,7 +637,7 @@ void sdcard_save_config() {
 
       logfile.println(F("#This is the configuration file"));
 
-      // SIM808
+      // TinyGSM
       //String sim_apn = SIM_APN;
       logfile.println(F("#Provider APN"));
       logfile.print(F("sim_apn="));
@@ -638,9 +655,7 @@ void sdcard_save_config() {
       logfile.print(F("blynk_key="));
       logfile.println(blynk_key);
 
-
-
-      logfile.println(F("#define the speed source"));
+      /*logfile.println(F("#define the speed source"));
       logfile.print(F("speed_source="));
       logfile.println(speed_source, DEC);
       logfile.println(F("#define the speedpulse port"));
@@ -676,7 +691,19 @@ void sdcard_save_config() {
       logfile.println(F("#1=Speedpulse"));
       logfile.println(F("#2=GPS"));
       logfile.print(F("speed_source="));
-      logfile.println(speed_source, DEC);
+      logfile.println(speed_source, DEC);*/
+
+      for (int i = 0; i <= (sizeof(port_config) / sizeof(port_config[0])) - 1; i++){
+        //Serial.println(port_config[i].name);
+        //Serial.println(port_config[i].desc);
+        //Serial.println(*port_config[i].port);
+
+        logfile.print(F("# "));
+        logfile.println(port_config[i].desc);
+        logfile.print(port_config[i].name);
+        logfile.print(F("="));
+        logfile.println(*port_config[i].port, DEC);
+      }
       
       
       logfile.close();
@@ -686,8 +713,45 @@ void sdcard_save_config() {
     INFO_PRINTLN("#OK");
   }
 
-  delay(3000);
+  //delay(3000);
 }
+
+
+/* 
+ * call back for file timestamps 
+ */
+void dateTime(uint16_t* date, uint16_t* time) {
+  #ifdef SDCARD
+  TRACE_PRINTLN(F("#->dateTime"));
+
+  /* using arduino RTC
+  while(I2C_lock);
+  I2C_lock = true;
+  DateTime now = rtc.now();
+  I2C_lock = false;
+
+  minute = now.minute();
+  hour = now.hour();
+  day = now.day();
+  month = now.month();
+  year = now.year();
+  */
+  
+  minute = rtc.getMinutes();
+  hour = rtc.getHours();
+  day = rtc.getDay();
+  month = rtc.getMonth();
+  year = 2000 + rtc.getYear();
+
+  
+  // return date using FAT_DATE macro to format fields
+  *date = FAT_DATE(year, month, day);
+
+  // return time using FAT_TIME macro to format fields
+  *time = FAT_TIME(hour, minute, second);
+  #endif
+}
+
 
 #endif //SDCARD
 

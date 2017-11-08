@@ -140,7 +140,7 @@ void get_bord_voltage() {
   TRACE_PRINT(F("#BORD VOLTAGE: "));
   TRACE_PRINTLN(bord_voltage);
   
-  if (bord_voltage > 3) {
+  /*if (bord_voltage > 4) {
     if (!running) {
       running = true;
       start_engine();
@@ -151,7 +151,7 @@ void get_bord_voltage() {
       running = false;
       stop_engine();
     }
-  }
+  }*/
 }
 
 #ifdef U8G2_DISPLAY_BG_LED
@@ -196,7 +196,7 @@ void get_rpm() {
     case 6: val = a5_hz; a5_hz = 0; break;
   }
 
-  rpm = (float(val) / rpm_multip) * 60;
+  rpm = (float(val) / rpm_multipl) * 60;
 
   TRACE_PRINT(F("#RPM: "));
   TRACE_PRINTLN(rpm);
@@ -206,10 +206,14 @@ void get_rpm() {
 void get_clima_out() {
   switch (temp_out_port) {
     case 1: 
-      temp_out = ds18b20_temp; 
+      temp_out = lm75_1_temp; 
       hum_out = -1000;
       break;
     case 2: 
+      temp_out = ds18b20_temp; 
+      hum_out = -1000;
+      break;
+    case 3:
       temp_out = si7021_temp;
       hum_out = si7021_hum;
       break;
@@ -279,7 +283,7 @@ void get_fuel() {
     case 3: fuel_V = a2_V; break;
     case 4: fuel_V = a3_V; break;
   }
-  
+
   TRACE_PRINT(F("#FUEL VOLTAGE: "));
   TRACE_PRINTLN(fuel_V);
 
@@ -299,10 +303,60 @@ void get_fuel() {
  */
 void read_ports() {
   TRACE_PRINTLN(F("#read_ports("));
-  a0_V = analogRead(A0) * A0_MULTIPLICATOR;
-  a1_V = analogRead(A1) * A1_MULTIPLICATOR;
-  a2_V = analogRead(A2) * A2_MULTIPLICATOR;
-  a3_V = analogRead(A3) * A3_MULTIPLICATOR;
+
+  float a0_sum = 0; 
+  float a1_sum = 0; 
+  float a2_sum = 0; 
+  float a3_sum = 0; 
+
+  
+  //a0_V = analogRead(A0) * A0_MULTIPLICATOR;
+  //a1_V = analogRead(A1) * A1_MULTIPLICATOR;
+  //a2_V = analogRead(A2) * A2_MULTIPLICATOR;
+  //a3_V = analogRead(A3) * A3_MULTIPLICATOR;
+
+
+  // for port A0
+  a0_tmp[IO_ARRAY-1] = analogRead(A0) * A0_MULTIPLICATOR;
+  for (int i = 0; i < IO_ARRAY-1; i++) {
+    
+    a0_tmp[i] = a0_tmp[i+1];
+    a0_sum += a0_tmp[i];
+  }
+  a0_sum += a0_tmp[IO_ARRAY-1];
+  a0_V = a0_sum / IO_ARRAY;
+
+  // for port A1
+  a1_tmp[IO_ARRAY-1] = analogRead(A1) * A1_MULTIPLICATOR;
+  for (int i = 0; i < IO_ARRAY-1; i++) {
+    
+    a1_tmp[i] = a1_tmp[i+1];
+    a1_sum += a1_tmp[i];
+  }
+  a1_sum += a1_tmp[IO_ARRAY-1];
+  a1_V = a1_sum / IO_ARRAY;
+    
+  // for port A2
+  a2_tmp[IO_ARRAY-1] = analogRead(A2) * A2_MULTIPLICATOR;
+  for (int i = 0; i < IO_ARRAY-1; i++) {
+    
+    a2_tmp[i] = a2_tmp[i+1];
+    a2_sum += a2_tmp[i];
+  }
+  a2_sum += a2_tmp[IO_ARRAY-1];
+  a2_V = a2_sum / IO_ARRAY;
+
+  // for port A3
+  a3_tmp[IO_ARRAY-1] = analogRead(A3) * A3_MULTIPLICATOR;
+  for (int i = 0; i < IO_ARRAY-1; i++) {
+    
+    a3_tmp[i] = a3_tmp[i+1];
+    a3_sum += a3_tmp[i];
+  }
+  a3_sum += a3_tmp[IO_ARRAY-1];
+  a3_V = a3_sum / IO_ARRAY;
+
+
 
   TRACE_PRINT(F("#Port Voltage: ")); 
   TRACE_PRINT(a0_V);

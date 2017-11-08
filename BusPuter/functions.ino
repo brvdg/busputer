@@ -100,9 +100,7 @@ void button() {
 void update_vars() {
   if ( update_vars_timer < millis() ) {
     update_vars_timer = millis() + UPDATE_VARS_TIMER;
-
-
-
+    
     if ( engine_running ) {
       engine_running_sec = unixTime(rtc.getHours(), rtc.getMinutes(), rtc.getSeconds(), rtc.getDay(), rtc.getMonth(), rtc.getYear()) - engine_start;
     }
@@ -113,6 +111,71 @@ void update_vars() {
 }
 
 void print_status() {
+#ifdef PRINT_STATUS
+  if ( print_status_timer < millis() ) {
+    TRACE_PRINTLN(F("#print_task_callback()"));
+    print_status_timer = millis() + PRINT_STATUS_TIMER;
+    
+    Serial.write(27);       // ESC command
+    Serial.print("[2J");    // clear screen command
+    Serial.write(27);
+    Serial.print("[H");     // cursor to home command
+  
+    Serial.println(F(""));
+    Serial.println(F("================"));
+
+    Serial.print(F("DATE: "));
+    sprintf(buf, "%02d:%02d:%02d", rtc.getHours(), rtc.getMinutes(), rtc.getSeconds());
+    Serial.println(buf);
+    
+    Serial.print(F("GPS Fix: "));
+    Serial.println(gps_fixstatus, DEC);
+    Serial.print(F("Latitude: "));
+    Serial.println(gps_latitude, DEC);
+    Serial.print(F("Longitude: "));
+    Serial.println(gps_longitude, DEC);
+    Serial.print(F("Altitude: "));
+    Serial.println(gps_altitude, DEC);
+    Serial.print(F("Speed: "));
+    Serial.println(gps_speed, 2);
+    Serial.print(F("Course: "));
+    Serial.println(gps_course, DEC);
+    Serial.print(F("view Satallites: "));
+    Serial.println(gps_view_satellites, DEC);
+    Serial.print(F("used Satellites: "));
+    Serial.println(gps_used_satellites, DEC);
+    Serial.print(F("Distance: "));
+    Serial.println(gps_distance, DEC);
+
+    Serial.print(F("Port 1 (V): "));
+    Serial.println(a0_V, 2);
+    Serial.print(F("Port 2 (V): "));
+    Serial.println(a1_V, 2);
+    Serial.print(F("Port 3 (V): "));
+    Serial.println(a2_V, 2);
+    Serial.print(F("Port 4 (V): "));
+    Serial.println(a3_V, 2);
+    Serial.print(F("Port 5 (Hz): "));
+    Serial.println(a4_hz, 2);
+    Serial.print(F("Port 6 (Hz): "));
+    Serial.println(a5_hz, 2);
+    
+    Serial.print(F("Speed (km/h): "));
+    Serial.println(speed, DEC);
+
+    for (int i = 0; i <= (sizeof(values) / sizeof(values[0])) - 1; i++){
+      Serial.print(values[i].name);
+      Serial.print(F(": "));
+      Serial.println(*values[i].value);
+    }  
+    
+    Serial.println(F("================"));
+  }
+#endif
+}
+
+
+/*void print_status() {
 #ifdef PRINT_STATUS
   //char buf[16];
 
@@ -230,7 +293,7 @@ void print_status() {
   //  fona_calculate_statistics();
 
 #endif // PRINT_STATUS
-}
+}*/
 
 
 
@@ -241,41 +304,44 @@ void print_status() {
 /*
    Starting the engine
 */
-void start_engine() {
+/*void start_engine() {
   INFO_PRINTLN(F("#--->Start Engine"));
 
-  if (engine_start_time_day != day) {
+#ifdef U8G2_DISPLAY
+  MainMenuPos = 2;
+  display_update();
+#endif //U8G2_DISPLAY
+
+  //if (engine_start_time_day != day) {
     //gps_distance_today = 0;
     //engine_running_sec_last_today = 0;
-  }
+  //}
   //gps_distance_start = 0;
 
   engine_running = true;
 
-  engine_start_time_h = hour;
-  engine_start_time_min = minute;
-  engine_start_time_sec = second;
-  engine_start_time_day = day;
-  engine_start_time_month = month;
-  engine_start_time_year = year;
+  //engine_start_time_h = hour;
+  //engine_start_time_min = minute;
+  //engine_start_time_sec = second;
+  //engine_start_time_day = day;
+  //engine_start_time_month = month;
+  //engine_start_time_year = year;
 
-  //I2C_lock = true;
-  /*
-    while(I2C_lock);
-    DateTime now = rtc.now();
-    engine_start = now.unixtime() - 3605;
-  */
-  //I2C_lock = false;
 
   engine_start = unixTime(rtc.getHours(), rtc.getMinutes(), rtc.getSeconds(), rtc.getDay(), rtc.getMonth(), rtc.getYear());
 
-#ifdef SIM808
-  //sim808_wakeup();
-#ifdef ONLINE_ON_STANDBY
-  if ( sim808_go_offline() ) {
-    online = false;
+#ifdef TinyGSM
+
+  if ( blynk_alarm ) {
+    tinygsm_alarm();
   }
-#endif
+  else {
+    if ( tinygsm_go_offline() ) {
+      online = false;
+    }
+  }
+
+
 #endif
 
 #ifdef SDCARD
@@ -284,73 +350,48 @@ void start_engine() {
   log_to_sdcard();
 #endif //SDCARD
 
-#ifdef U8G2_DISPLAY
-  /*for (int i = 0; i <= LCD_LED_MAX; i++) {
-    analogWrite(LCD_LED, i);
-    delay(10);
-    }*/
-  MainMenuPos = 2;
-#endif //U8G2_DISPLAY
 
 
-
-  // Send a alarm SMS
-#ifdef FONA
-  if (alarm_active) {
-    if (!alarmtatus_send) {
-      alarmtatus_send = true;
-#ifdef SMS_Commands
-      fona_sendSMS_Alarm();
-#endif
-    }
-  }
-#endif
-
-
-}
+}*/
 
 
 /*
    Stop the engine
 */
-void stop_engine() {
+/*void stop_engine() {
   INFO_PRINTLN(F("#--->Stop Engine"));
 
   //engine_running_sec_last_all += engine_running_sec;
   //engine_running_sec_last_today += engine_running_sec;
 
-  engine_running = false;
 
-  engine_running_total_last = engine_running_total_last;
+#ifdef U8G2_DISPLAY
+  MainMenuPos = 1;
+  display_update();
+#endif //U8G2_DISPLAY
+
+
+  engine_running = false;
+  engine_running_total += engine_running_sec;
+
+  //engine_running_total_last = engine_running_total_last;
 
 #ifdef SDCARD
   close_file();
 #endif //SDCARD
 
-#ifdef SIM808
-  //sim808_sleep();
-#ifdef ONLINE_ON_STANDBY
-  if ( sim808_go_online() ) {
-    online = true;
-  }
-#endif
-#endif
-
-  //rtc.standbyMode();
-
-#ifdef U8G2_DISPLAY
-  /*for (int i = LCD_LED_MAX; i >= 0; i--) {
-    analogWrite(LCD_LED, i);
-    delay(10);
-    }*/
-  MainMenuPos = 1;
-#endif //U8G2_DISPLAY
 
   if ( dimmer_V > 2 ) {
     set_alarm(600, 200, 5, true);
   }
 
-}
+#ifdef TinyGSM
+  if ( tinygsm_go_online() ) {
+    online = true;
+  }
+#endif
+
+}*/
 
 
 /*

@@ -5,31 +5,36 @@
 #define MENU_clock 1
 #define MENU_speed 2
 #define MENU_trip 3
-#define MENU_power 7
-#define MENU_water_temp 4
-#define MENU_fuel 5
-#define MENU_clima 6
-#define MENU_altitude 
-#define MENU_gpsinfo 8
-#define MENU_rpm 9
-#define MENU_sdcard 10
-#define MENU_optionen 11
-#define MENU_info 12
+#define MENU_values 4
+//#define MENU_water_temp 40
+//#define MENU_fuel 50
+#define MENU_clima 5
+//#define MENU_power 7
+#define MENU_gpsinfo 6
+//#define MENU_rpm 9
+#define MENU_optionen 7
+#define MENU_info 8
+
+//#define MENU_altitude 
+
 #define MENU_custom 13
 #define MENU_gpsinfo2 14
 #define MENU_
 
-#define MENU_opt_temp_out 101
-#define MENU_opt_rpm 102
-#define MENU_opt_bord_voltage 103
-#define MENU_opt_ki_dimmer 104
-#define MENU_opt_speed 105
-#define MENU_opt_dimmer_min 106
-#define MENU_opt_dimmer_max 107
-#define MENU_save_config 108
+#define MENU_opt_config 101
+
+//#define MENU_opt_temp_out 1010
+//#define MENU_opt_rpm 102
+//#define MENU_opt_bord_voltage 103
+//#define MENU_opt_ki_dimmer 104
+//#define MENU_opt_speed 105
+//#define MENU_opt_dimmer_min 106
+//#define MENU_opt_dimmer_max 107
+#define MENU_save_config 102
 
 #define MENU_debug_ports 200
 #define MENU_debug_ports_2 201
+#define MENU_sdcard 202
 
 
 
@@ -95,24 +100,26 @@ void display_draw(void) {
     case MENU_clock: menu_clock(); break;
     case MENU_speed: menu_speed(); break;
     case MENU_trip: menu_trip(); break;
+    case MENU_values: menu_values(); break;
     case MENU_gpsinfo: menu_gpsinfo(); break;
     case MENU_gpsinfo2: menu_gpsinfo2(); break;
-    case MENU_power: menu_power(); break;
+//    case MENU_power: menu_power(); break;
     case MENU_sdcard: menu_sdcard(); break;
-    case MENU_water_temp: menu_water_temp(); break;
+    //case MENU_water_temp: menu_water_temp(); break;
     case MENU_clima: menu_clima(); break; 
     case MENU_info: menu_info(); break; 
-    case MENU_fuel: menu_fuel(); break;
-    case MENU_rpm: menu_rpm(); break;
+    //case MENU_fuel: menu_fuel(); break;
+    //case MENU_rpm: menu_rpm(); break;
     case MENU_optionen: menu_optionen(); break;
-    
-    case MENU_opt_temp_out: menu_opt_temp_out(); break;
-    case MENU_opt_rpm: menu_opt_rpm(); break;
-    case MENU_opt_bord_voltage: menu_opt_bord_voltage(); break;
-    case MENU_opt_ki_dimmer: menu_opt_ki_dimmer(); break;
-    case MENU_opt_speed: menu_opt_speed(); break;
-    case MENU_opt_dimmer_min: menu_opt_dimmer_min(); break;
-    case MENU_opt_dimmer_max: menu_opt_dimmer_max(); break;
+
+    case MENU_opt_config: menu_opt_config(); break;
+    //case MENU_opt_temp_out: menu_opt_temp_out(); break;
+    //case MENU_opt_rpm: menu_opt_rpm(); break;
+    //case MENU_opt_bord_voltage: menu_opt_bord_voltage(); break;
+    //case MENU_opt_ki_dimmer: menu_opt_ki_dimmer(); break;
+    //case MENU_opt_speed: menu_opt_speed(); break;
+    //case MENU_opt_dimmer_min: menu_opt_dimmer_min(); break;
+    //case MENU_opt_dimmer_max: menu_opt_dimmer_max(); break;
     case MENU_save_config: menu_save_config(); break;
 
     case MENU_debug_ports: menu_debug_ports(); break;

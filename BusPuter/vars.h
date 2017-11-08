@@ -31,14 +31,13 @@ byte saved_config = 0;
  * Variables ...
  */
 // Temperature / Humidity
-int16_t temp_out = -1000;
+float temp_out = 0;
 byte temp_out_port = TEMP_OUT_PORT;
-int temp_in = -127;
-int hum_in = -127;
+float temp_in = -127;
+float hum_in = -127;
 int hum_out = 0;
 int ds18b20_temp = -127;
-int si7021_temp = -127;
-int si7021_hum = 0;
+
 
 // Voltage
 float bord_voltage = 0;
@@ -56,22 +55,26 @@ byte dimmer_max = 10;
 float fuel_V = 0;
 float fuel_l = 43.8;
 float fuel_ohm = 0;
-byte fuel_port = FUEL_GAUGE;
+byte fuel_port = FUEL_GAUGE_PORT;
+int fuel_gaugeresistor = FUEL_GAUGERESISTOR;
+byte fuel_warning = FUEL_WARNING;
 
 // Water Temperatur
 float water_temp_V = 0; // Voltage of port
 float water_temp_ohm = 0;
-int water_temp = 0;
+float water_temp = 0;
 byte water_temp_port = WATER_TEMP;
+byte water_temp_warning = WATER_TEMP_WARNING;
 
 // RPM
-int rpm = 0;
+float rpm = 0;
 byte rpm_port = RPM_PORT;
-float rpm_multip = RPM_MULTIPL;
+float rpm_multipl = RPM_MULTIPL;
 
 // Speed
 uint8_t speed = 0;
 int speedpulse = 0;
+byte speed_offset = SPEED_OFFSET;
 int speedpulse_tmp[SPEEDPULSEARRAY];
 byte speedpulse_port = SPEEDPULSE_PORT;
 byte speed_source = SPEEDSOURCE;
@@ -79,17 +82,34 @@ byte speed_source = SPEEDSOURCE;
 // Door
 byte door_port = 0;
 
+// OIL
+float oil_temp = 0;
+byte oil_temp_port = 0;
+float oil_pressure = 0;
+byte oil_pressure_port = 0;
+byte oil_press_warning = OIL_PRESSURE_WARNING;
+byte oil_temp_warning = OIL_TEMP_WARNING;
+
 // Alarm
 byte alarm = 0;
 unsigned long alarm_timer = 0;
 
 // OneWire 
 bool onewire_available = false;
+
 //I2C
 boolean si7021_available = false;
+boolean bmp280_available = false;
+boolean lm75_1_available = false;
+boolean lm75_2_available = false;
+
+int si7021_temp = -127;
+int si7021_hum = 0;
+double lm75_1_temp = 0;
+double lm75_2_temp = 0;
 
 
-// SIM808
+// TinyGSM
 String sim_apn = SIM_APN;
 String sim_user = SIM_USER;
 String sim_pass = SIM_PASS;
@@ -97,13 +117,20 @@ String blynk_key = BLYNK_KEY;
 boolean online = false;
 
 byte blynk_offline_counter = 0;
-boolean blynk_alarm = false;
-int blynk_geofancy_distance = 1;
-boolean blynk_geofancy_alarmed = false;
+boolean geo_fence_enabled = false;
+boolean geo_fence_armed = false;
+boolean geo_fence_alarm = false;
+boolean geo_fence_alarm_system = false;
+boolean stay_online = false;
+int geo_fence_distance = 100;
+boolean blynk_geo_fence_alarmed = false;
 unsigned long online_intervall_timer = 0;
+boolean blynk_alarm = false;
 
 boolean running = false;
 
+
+// TIME
 boolean summer_time = true;
 int timezone = 1;
 int16_t year;
@@ -113,15 +140,16 @@ int8_t hour;
 int8_t minute;
 int8_t second;
 
+
 //Statistics
 long engine_start = 0;
-uint8_t engine_start_time_h = 0;
-uint8_t engine_start_time_min = 0;
-uint8_t engine_start_time_sec = 0;
-uint8_t engine_start_time_day = 0;
-uint8_t engine_start_time_month = 0;
-uint8_t engine_start_time_year = 0;
-uint8_t engine_stop_day = 0;
+//uint8_t engine_start_time_h = 0;
+//uint8_t engine_start_time_min = 0;
+//uint8_t engine_start_time_sec = 0;
+//uint8_t engine_start_time_day = 0;
+//uint8_t engine_start_time_month = 0;
+//uint8_t engine_start_time_year = 0;
+//uint8_t engine_stop_day = 0;
 long engine_running_sec = 0;
 //long engine_running = 0;
 long engine_running_total = 0;
@@ -147,6 +175,12 @@ float a5_hz = 0;
 unsigned long a4_time = 0;
 unsigned long a5_time = 0;
 
+float a0_tmp[IO_ARRAY];
+float a1_tmp[IO_ARRAY];
+float a2_tmp[IO_ARRAY];
+float a3_tmp[IO_ARRAY];
+
+
 
  /*
  * Display
@@ -159,6 +193,11 @@ unsigned long display_update_timer = 0;
 boolean display_update_timer_lock = false;
 
 int MainMenuPos = 0;
+int MenuValuesPos = 0;
+int MenuConfigPos = 0;
+boolean MenuEdit = false;
+
+byte clock_view = CLOCK_VIEW;
 
 //void display_init();
 //void display_draw();
@@ -181,18 +220,12 @@ RTCZero rtc;
 //#define cardSelect 4
 #define KMLLOG    //???
 
-//#include <SPI.h>
-//#include <SD.h>
-//#include <SPI.h>
-//#include "SdFat.h"
-
-//SdFat SD;
-//SdFile logfile;
-
+unsigned long log_timer = 0;
 char filename[16];
 boolean SDmount = false;
 boolean SDerror = false;
-uint16_t lastfile = 0;
+int lastfile = 0;
+byte lastfile_config = 0;
 
 
 #endif //SDCARD
@@ -226,14 +259,17 @@ int gps_used_satellites_blynk;
 float gps_latitude, gps_longitude;
 float gps_latitude_old = 0;
 float gps_longitude_old = 0;
-float gps_latitude_lasttrack = 0;
-float gps_longitude_lasttrack = 0;
+//float gps_latitude_lasttrack = 0;
+//float gps_longitude_lasttrack = 0;
 float gps_latitude_lastlog = 0;
 float gps_longitude_lastlog = 0;
+// for distance check in blynk function
 float gps_latitude_blynk = 0;
 float gps_longitude_blynk = 0;
-float gps_latitude_blynk_geofancy = 0;
-float gps_longitude_blynk_geofancy = 0;
+//float gps_latitude_blynk_geo_fence = 0;
+//float gps_longitude_blynk_geo_fence = 0;
+float gps_latitude_geo_fence = 0;
+float gps_longitude_geo_fence = 0;
 boolean gps_success = false;
 boolean gps_fix = false;
 uint32_t gps_distance_trip = 0;
@@ -301,6 +337,72 @@ uint8_t button_1_double = 0;
 
 unsigned long update_vars_timer = 0;
 
+/*
+ * Status Checker
+ */
+unsigned long status_checker_timer = 0;
+boolean alarm_system_armed = false;
+boolean alarm_system_triggered = false;
+
+
+/*
+ * Pointer to the programm variables and to the config variables
+ */
+
+#define MAX_PORTS 10
+#define MIN_CONFIG 1
+#define DEFAULT_STEPS 0 // if "0" -> menue is off
+struct struct_port_config {
+  char name[20];
+  char desc[25];
+  byte *port;
+  byte steps;
+  byte max;
+  byte min;
+};
+
+const struct_port_config port_config[] = {
+  {"bord_voltage_port", "Bord Voltage Port", &bord_voltage_port, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG},
+  {"dimmer_port", "Dimmer Port", &dimmer_port, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG},
+  {"fuel_port", "Fuel Gauge Port", &fuel_port, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG},
+  {"water_temp_port", "Water Gauge Port", &water_temp_port, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG},
+  {"rpm_port", "RPM Port", &rpm_port, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG},
+  {"speedpulse_port", "GALA Port", &speedpulse_port, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG},
+  {"speed_source", "Speed Source", &speed_source, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG},
+  {"door_port", "Door Port", &door_port, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG},
+  {"oil_temp_port", "Oil Temp. Port", &oil_temp_port, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG},
+  {"oil_pressure_port", "Oil Press. Port", &oil_pressure_port, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG},
+  {"lastfile_config", "Last Log File (x10)", &lastfile_config, 1, 99, 1},
+  {"dimmer_max", "Dimmer Max.", &dimmer_max, 10, 100},
+  {"dimmer_min", "Dimmer Min.", &dimmer_min, 10, 100},
+  {"clock_view", "Clock and Temp.", &clock_view, 1, 1, 0},
+  {"speed_offset", "Speed Offset", &speed_offset, 1, 25, 0},
+  {"water_temp_warning", "Water Temp Warning", &water_temp_warning, 5, 130, 80},
+  {"oil_temp_warning", "Oil Temp Warning", &oil_temp_warning, 5, 150, 80},
+  {"oil_press_warning", "Oil Press. Warning (/10)", &oil_press_warning, 1, 10, 1}
+};
+
+
+
+
+struct struct_values {
+  char name[20];
+  char desc[20];
+  float *value;
+  byte digits;
+  char suffix[6];
+  boolean show_off; // show this if engine is stopped
+  byte *port;
+};
+
+const struct_values values[] {
+  {"bord_voltage", "Bordspannung", &bord_voltage, 1, "V", false, &bord_voltage_port},
+  {"fuel_l", "Tank", &fuel_l, 0, "l", false, &fuel_port}, 
+  {"water_temp", "Kuehlwasser", &water_temp, 0, "\xb0 C", false, &water_temp_port},
+  {"rpm", "RPM", &rpm, 0, "U/min", false, &rpm_port},
+  {"oil_temp", "Oel Temp.", &oil_temp, 0, "\xb0 C", false, &oil_temp_port},
+  {"oil_pressure", "Oeldruck", &oil_pressure, 1, "bar", false, &oil_pressure_port}
+};
 
 
 /*
