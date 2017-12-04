@@ -50,7 +50,7 @@
 #define BLYNK_DEVICE_NAME "MyCar"
 
 // if this is turned on
-// we are only if the car is turned off
+// we are online if the car is turned off
 #define ONLINE_ON_STANDBY
 #define ONLINE_INTERVALL 15 // interval in min
 //#define GEO_FENCE_DISTANCE 50 // im m
@@ -70,8 +70,8 @@
    2 = GPS
 */
 #define SPEEDSOURCE 2
-
 #define SPEED_OFFSET 0
+
 // Speedpulse Port
 #define SPEEDPULSE_PORT 6
 #define SPEEDPULSEARRAY 25
@@ -147,7 +147,7 @@
 //#define TRACE
 
 // print the status on serial port
-//#define PRINT_STATUS
+    #define PRINT_STATUS
 
 
 

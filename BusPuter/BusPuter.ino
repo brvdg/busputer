@@ -8,7 +8,7 @@
 
 
 #define VERSION "0.8"
-#define BUILD "171108a"
+#define BUILD "171204a"
 
 // include configuration file
 #include "config.h"
@@ -23,7 +23,10 @@
 
 
 #include <SDU.h>
-
+/*
+ * Copy the .bin file to the SD card and rename
+ * the file to UPDATE.bin.
+ */
 
 /*
  * Blynk definations

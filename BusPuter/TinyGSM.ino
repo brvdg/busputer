@@ -79,6 +79,7 @@ void tinygsm_init()
   // go online if we defined it
 #ifdef ONLINE_ON_STANDBY
   stay_online = true;
+  display_bootmsg(F("going online"));
 #endif
 
   //if ( stay_online ) {
@@ -91,6 +92,7 @@ void tinygsm_init()
 
       blynk_msg(F("Blynk is initialized"));
       online = true;
+      display_bootmsg(F("online"));
     }
   //}
 
@@ -217,7 +219,7 @@ void tinygsm_loop()
       if (online) {
         //Blynk.run();
         if ( tinygsm_blynk_timer < millis() ) {
-          DEBUG_PRINTLN(F("#set location"));
+          DEBUG_PRINTLN(F("#update Blynk location"));
 
           // Update position if it's more then 10m
           if ( get_distance(gps_latitude, gps_longitude, gps_latitude_blynk, gps_longitude_blynk) >= 10 ) {
@@ -262,9 +264,7 @@ void tinygsm_loop()
     }
     else {
       DEBUG_PRINTLN(F("#gps not fix"));
-      // set the old values
-      //gps_latitude = gps_latitude_old;
-      //gps_longitude = gps_longitude_old;
+      
       if (online) {
         if (gps_used_satellites != gps_used_satellites_blynk) {
           Blynk.virtualWrite(BLYNK_VIRTUAL_gps_used_satellites, gps_used_satellites);

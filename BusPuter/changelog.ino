@@ -1,4 +1,8 @@
 /*
+ * 171204a
+ * - nothing special 
+ * - add tests for ht16k33
+ * 
  * 171108a
  * - rename SIM808 to TinyGSM
  * - improve stay_online

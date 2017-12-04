@@ -8,6 +8,25 @@
 #ifdef I2C
 #include <Wire.h>
 
+#include <Adafruit_GFX.h>
+#include "Adafruit_LEDBackpack.h"
+
+Adafruit_AlphaNum4 alpha4 = Adafruit_AlphaNum4();
+char displaybuffer[4] = {' ', ' ', ' ', ' '};
+
+const uint16_t fonttable[] =  {
+  0b0000110000111111, // 0
+  0b0000000000000110, // 1
+  0b0000000011011011, // 2
+  0b0000000010001111, // 3
+  0b0000000011100110, // 4
+  0b0010000001101001, // 5
+  0b0000000011111101, // 6
+  0b0000000000000111, // 7
+  0b0000000011111111, // 8
+  0b0000000011101111 // 9
+};
+
 
 unsigned long i2c_timer = 0;
 
@@ -66,7 +85,30 @@ void i2c_init() {
         case 0x70:
           //si7021_available = true;
           //INFO_PRINTLN(F("#HT16K33 found!"));
-          display_bootmsg(F("HT16K33 found"));
+          display_bootmsg(F("HT16K33 (#1) found"));
+          ht16k33_available = true;
+          alpha4.begin(0x70);  // pass in the address
+          alpha4.writeDigitRaw(3, 0x0);
+          alpha4.writeDigitRaw(0, 0xFFFF);
+          alpha4.writeDisplay();
+          delay(200);
+          alpha4.writeDigitRaw(0, 0x0);
+          alpha4.writeDigitRaw(1, 0xFFFF);
+          alpha4.writeDisplay();
+          delay(200);
+          alpha4.writeDigitRaw(1, 0x0);
+          alpha4.writeDigitRaw(2, 0xFFFF);
+          alpha4.writeDisplay();
+          delay(200);
+          alpha4.writeDigitRaw(2, 0x0);
+          alpha4.writeDigitRaw(3, 0xFFFF);
+          alpha4.writeDisplay();
+          delay(200);
+  
+          alpha4.clear();
+          alpha4.writeDisplay();
+
+  
           //delay(2000);
           break;
         case 0x48:
@@ -154,6 +196,8 @@ void i2c_loop() {
 
       if (lm75_1_available) i2c_get_lm75(1);
       if (lm75_2_available) i2c_get_lm75(2);
+
+      if (ht16k33_available) i2c_ht16k33();
       
       I2C_lock = false;
     }
@@ -253,6 +297,25 @@ void i2c_get_lm75(int device)
   }
   //Serial.println(value);
 }
+
+void i2c_ht16k33() {
+
+  int tmp_h = (hour / 10) * 10;
+  int tmp_m = (minute / 10) * 10;
+  
+  alpha4.writeDigitRaw(0, fonttable[tmp_h/10]);
+  alpha4.writeDigitRaw(1, fonttable[hour - tmp_h]);
+  alpha4.writeDigitRaw(2, fonttable[tmp_m/10]);
+  alpha4.writeDigitRaw(3, fonttable[minute - tmp_m]);
+  alpha4.writeDisplay();
+    
+  /*alpha4.writeDigitRaw(0, 0b0000000000000110);
+  alpha4.writeDigitRaw(1, 0b0000100010001011);
+  alpha4.writeDigitRaw(2, 0b0000000010001111);
+  alpha4.writeDigitRaw(3, 0b0000000000000110);
+  alpha4.writeDisplay();*/
+}
+
 
 #endif // I2C
 

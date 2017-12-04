@@ -102,12 +102,14 @@ boolean si7021_available = false;
 boolean bmp280_available = false;
 boolean lm75_1_available = false;
 boolean lm75_2_available = false;
+boolean ht16k33_available = false;
 
 int si7021_temp = -127;
 int si7021_hum = 0;
 double lm75_1_temp = 0;
 double lm75_2_temp = 0;
 
+byte i2c_led_disp_clock = 1;
 
 // TinyGSM
 String sim_apn = SIM_APN;
@@ -367,11 +369,13 @@ const struct_port_config port_config[] = {
   {"fuel_port", "Fuel Gauge Port", &fuel_port, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG},
   {"water_temp_port", "Water Gauge Port", &water_temp_port, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG},
   {"rpm_port", "RPM Port", &rpm_port, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG},
+//  {"rpm_multipl", "RPM Multiplikator", &rpm_multipl, DEFAULT_STEPS, 255, 1},
   {"speedpulse_port", "GALA Port", &speedpulse_port, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG},
   {"speed_source", "Speed Source", &speed_source, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG},
   {"door_port", "Door Port", &door_port, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG},
   {"oil_temp_port", "Oil Temp. Port", &oil_temp_port, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG},
   {"oil_pressure_port", "Oil Press. Port", &oil_pressure_port, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG},
+  {"i2c_led_disp_clock", "LED Clock", &i2c_led_disp_clock, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG},
   {"lastfile_config", "Last Log File (x10)", &lastfile_config, 1, 99, 1},
   {"dimmer_max", "Dimmer Max.", &dimmer_max, 10, 100},
   {"dimmer_min", "Dimmer Min.", &dimmer_min, 10, 100},
