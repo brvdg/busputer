@@ -11,11 +11,11 @@
 // Display Configuration
 #define U8G2_DISPLAY
 //#define DOGS102
-#define OLED
+//#define OLED
 //#define NOKIA
 
 // Port defination
-#ifdef U8G2_DISPLAY
+//#ifdef U8G2_DISPLAY
 //#define U8G2_DISPLAY_BG_LED 10 //turn this off if a OLED ist used
 #define U8G2_DISPLAY_CS 11
 #define U8G2_DISPLAY_DC 12
@@ -30,7 +30,7 @@
 
 #define CLOCK_VIEW 1 // 1 = clock and temperature / 0 = clock and date
 
-#endif // U8G2_DISPLAY
+//#endif // U8G2_DISPLAY
 
 // SD Card
 #define SDCARD
@@ -42,8 +42,8 @@
 #define SIM_APN "Provider_APN"
 #define SIM_USER "Provider_USER"
 #define SIM_PASS "Provider_PASSWORD"
-#define SMS_Keyword "geheim"
-#define BLYNK_KEY "1234567890abc..."
+#define SMS_Keyword "keyword"
+#define BLYNK_KEY "0123456789abcdefghijkl"
 
 #define MYNUMBER "+4917123456789"
 
@@ -51,9 +51,8 @@
 
 // if this is turned on
 // we are online if the car is turned off
-#define ONLINE_ON_STANDBY
-#define ONLINE_INTERVALL 15 // interval in min
-//#define GEO_FENCE_DISTANCE 50 // im m
+#define ONLINE_INTERVALL 3 // interval in min
+//#define GEO_FENCE_DISTANCE 50 // im ms-m
 
 
 /*
@@ -125,12 +124,12 @@
 #define SI7021
 
 /*
- * analog input multiplicator
- * A0/A1 range 0-15.6V
- * 15.6 / 1024 = 0.015234
- * A2/A3 range 0-10V 
- * 10 / 1024 = 0.009765
- */
+   analog input multiplicator
+   A0/A1 range 0-15.6V
+   15.6 / 1024 = 0.015234
+   A2/A3 range 0-10V
+   10 / 1024 = 0.009765
+*/
 #define A0_MULTIPLICATOR 0.015234
 #define A1_MULTIPLICATOR 0.015234
 #define A2_MULTIPLICATOR 0.009765
@@ -142,21 +141,47 @@
 
 // enable Debugging
 //#define OFFLINE // disable some functions for programming and testing
-#define INFO
+/*#define INFO
 #define DEBUG
-//#define TRACE
+#define TINYGSM_DEBUG
+#define SD_DEBUG
+#define TRACE*/
+
+#ifdef TINYGSM_DEBUG
+#define BLYNK_PRINT Serial // Defines the object that is used for printing
+#define BLYNK_DEBUG        // Optional, this enables more detailed prints
+#endif
 
 // print the status on serial port
-    #define PRINT_STATUS
-
-
-
+//#define PRINT_STATUS
 
 
 
 /*
- * Blynk virtual Ports defination
+   Watchdog
+   This is not the AProvider_PASSWORDel internal Watchdag.
+   The Watchdog is based on an timer interrrupt
+*/
+#define WATCHDOG_TIMER 120 * 1000 // 120s
+//#define WATCHDOG_TIMER 10000 // 10s
+
+/*
+   Blynk virtual Ports defination
+*/
+/*
+ * Blynk definations
  */
+#ifdef TinyGSM
+// Select your modem:
+//#define TINY_GSM_MODEM_SIM800
+#define TINY_GSM_MODEM_SIM808
+//#define TINY_GSM_MODEM_SIM900
+//#define TINY_GSM_MODEM_A6
+//#define TINY_GSM_MODEM_M590
+#include <TinyGsmClient.h>
+#include <BlynkSimpleSIM800.h>
+#endif // TinyGSM
+
 
 #define BLYNK_VIRTUAL_terminal V0
 #define BLYNK_VIRTUAL_map V1
@@ -182,10 +207,10 @@
 #error "Only one display can be configured"
 #endif
 
-#if defined (U8G2_DISPLAY_BG_LED) && defined (OLED)
-#pragma message ( "U8G2_DISPLAY_BG_LED and OLDE can't used together" )
-#error "U8G2_DISPLAY_BG_LED and OLED can't used together"
-#endif
+//#if defined (U8G2_DISPLAY_BG_LED) && defined (OLED)
+//#pragma message ( "U8G2_DISPLAY_BG_LED and OLDE can't used together" )
+//#error "U8G2_DISPLAY_BG_LED and OLED can't used together"
+//#endif
 
 /*
    Timer for the seperate Tasks
@@ -212,5 +237,42 @@
 #define BLYNK_CHECK_TIMER 600000 // 10min
 
 
+#ifdef INFO
+ #define INFO_PRINT(x)  Serial.print (x)
+ #define INFO_PRINTLN(x)  Serial.println (x)
+ #define INFO_PRINTHEX(x)  Serial.print (x, HEX)
+#else
+ #define INFO_PRINT(x)
+ #define INFO_PRINTLN(x)
+ #define INFO_PRINTHEX(x)
+#endif
+#ifdef DEBUG
+ #define DEBUG_PRINT(x)  Serial.print (x)
+ #define DEBUG_PRINTLN(x)  Serial.println (x)
+#else
+ #define DEBUG_PRINT(x)
+ #define DEBUG_PRINTLN(x)
+#endif
+#ifdef TINYGSM_DEBUG
+ #define TINYGSM_DEBUG_PRINT(x)  Serial.print (x)
+ #define TINYGSM_DEBUG_PRINTLN(x)  Serial.println (x)
+#else
+ #define TINYGSM_DEBUG_PRINT(x)
+ #define TINYGSM_DEBUG_PRINTLN(x)
+#endif
+#ifdef SD_DEBUG
+ #define SD_DEBUG_PRINT(x)  Serial.print (x)
+ #define SD_DEBUG_PRINTLN(x)  Serial.println (x)
+#else
+ #define SD_DEBUG_PRINT(x)
+ #define SD_DEBUG_PRINTLN(x)
+#endif
 
 
+#ifdef TRACE
+ #define TRACE_PRINT(x)  Serial.print (x)
+ #define TRACE_PRINTLN(x)  Serial.println (x)
+#else
+ #define TRACE_PRINT(x)
+ #define TRACE_PRINTLN(x)
+#endif

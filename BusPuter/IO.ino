@@ -42,10 +42,12 @@ void IO_init() {
   
   #endif //ALARM_OUT
 
-  digitalWrite(A0, HIGH);
+
+  //pinMode(A0,INPUT_PULLUP)
+  /*digitalWrite(A0, HIGH);
   digitalWrite(A1, HIGH);
   digitalWrite(A2, HIGH);
-  digitalWrite(A3, HIGH);
+  digitalWrite(A3, HIGH);*/
 
   
   pinMode(A4, INPUT);           // set pin to input

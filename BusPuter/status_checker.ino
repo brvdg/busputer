@@ -1,9 +1,8 @@
 /***************************************************
- *  This sketch is to check serveral status information and make seperate actions.
- *  https://github.com/vshymanskyy/TinyGSM
+ *  This sketch is to check serveral status information and react with events.
  *
  *  Author: Brun
- *  
+ *
  ****************************************************/
 
 void status_checker() {
@@ -11,10 +10,15 @@ void status_checker() {
 
     check_engine();
 
-    check_alarm_system();
-    check_geo_fence();
-    check_online();
-  
+    /*
+     * functions based on tinygsm
+     */
+    if ( tinygsminit ) {
+      check_alarm_system();
+      check_geo_fence();
+      check_online();
+    }
+
     status_checker_timer = millis() + STATUS_CHECKER_TIMER;
   }
 }
@@ -27,9 +31,14 @@ void check_engine() {
 
       INFO_PRINTLN(F("#--->Start Engine"));
 
-      
+
 
       engine_start = unixTime(rtc.getHours(), rtc.getMinutes(), rtc.getSeconds(), rtc.getDay(), rtc.getMonth(), rtc.getYear());
+
+
+      //reset timer for trip calculation
+      //trip_time_last = engine_start;
+
 
       if ( alarm_system_armed ) {
         check_alarm_system();
@@ -38,7 +47,7 @@ void check_engine() {
         #ifdef U8G2_DISPLAY
         MainMenuPos = 2;
         display_update();
-        #endif //U8G2_DISPLAY 
+        #endif //U8G2_DISPLAY
 
         #ifdef TinyGSM
         if ( tinygsm_go_offline() ) {
@@ -46,16 +55,12 @@ void check_engine() {
         }
         #endif
       }
-      
-      
-      
+
 
       #ifdef SDCARD
       open_file();
       log_to_sdcard();
       #endif //SDCARD
-
-      
 
     }
   }
@@ -74,6 +79,8 @@ void check_engine() {
       engine_running = false;
       engine_running_total += engine_running_sec;
 
+      trip_time_last = trip_time;
+
       #ifdef SDCARD
       close_file();
       #endif //SDCARD
@@ -91,15 +98,15 @@ void check_engine() {
 
       // disable geo fenece
       if ( geo_fence_distance != 0 ) {
-        geo_fence_enabled = false;
-      }    
+        geo_fence_enabled = true;
+      }
       else {
         blynk_msg(F("geo fence is disabled"));
       }
-      
+
     }
   }
-  
+
 }
 
 /*
@@ -112,25 +119,25 @@ void check_alarm_system() {
     if (engine_running) {
       INFO_PRINTLN(F("#--->ALARM!!! -Engine-"));
       alarm_system_triggered = true;
-      
+
       if ( tinygsm_go_online() ) {
         online = true;
       }
-      
+
       set_alarm(600, 200, 5, true);
       tinygsm_alarm();
 
       MainMenuPos = 1;
       display_update();
-    } 
+    }
   }
 
   // block display
   if ( alarm_system_armed ) {
     MainMenuPos = 1;
-    display_update();  
+    display_update();
   }
-  
+
 }
 
 /*
@@ -177,8 +184,9 @@ void check_geo_fence() {
  * check if it's time to go online or to stay onlie or to go offline
  */
 void check_online() {
-  
-  if ( !stay_online && !alarm_system_triggered && !geo_fence_alarm) {
+
+  // online intervall
+  if ( !stay_online && !engine_running && !alarm_system_triggered && !geo_fence_alarm) {
     if ( online_intervall_timer < millis() ) {
       Serial.println("#");
       if (!online) {
@@ -191,7 +199,7 @@ void check_online() {
         DEBUG_PRINTLN(F("#going offline "));
         if (tinygsm_go_offline()) {
           online = false;
-          online_intervall_timer = millis() + ONLINE_INTERVALL * 60000;
+          online_intervall_timer = millis() + online_interval * 60000;
         }
       }
     }
@@ -218,5 +226,3 @@ void check_online() {
     }
   }
 }
-
-

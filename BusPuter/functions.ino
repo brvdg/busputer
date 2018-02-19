@@ -6,6 +6,32 @@
  ****************************************************/
 
 
+
+
+
+
+void trip() {
+
+  if ( trip_timer < millis() ) {
+    trip_timer = millis() + 1000;
+    TRACE_PRINTLN(F("#run trip calculation "));
+
+
+    if ( engine_running ) {
+      trip_time = unixTime(rtc.getHours(), rtc.getMinutes(), rtc.getSeconds(), rtc.getDay(), rtc.getMonth(), rtc.getYear()) - engine_start;
+      DEBUG_PRINT(F("Trip time: "));
+      DEBUG_PRINTLN(trip_time);
+      trip_distance = gps_distance;
+      DEBUG_PRINT(F("Trip distance: "));
+      DEBUG_PRINTLN(trip_distance);
+    }
+    else {
+      trip_time = trip_time_last;
+    }
+  }
+}
+
+
 /*
    check button state and debounce it
 
@@ -18,6 +44,7 @@
 */
 
 void button() {
+
 
   if ( button_timer < millis() ) {
     button_timer = millis() + BUTTON_TIMER;
@@ -32,7 +59,7 @@ void button() {
         TRACE_PRINTLN(F("#Button pressed "));
         //TRACE_PRINTLN(button_1_low, DEC);
         //TRACE_PRINTLN(button_1_high, DEC);
-        display_update();
+        display_loop();
         //#endif
       }
       else {
@@ -100,14 +127,11 @@ void button() {
 void update_vars() {
   if ( update_vars_timer < millis() ) {
     update_vars_timer = millis() + UPDATE_VARS_TIMER;
-    
+
     if ( engine_running ) {
       engine_running_sec = unixTime(rtc.getHours(), rtc.getMinutes(), rtc.getSeconds(), rtc.getDay(), rtc.getMonth(), rtc.getYear()) - engine_start;
     }
-
   }
-
-
 }
 
 void print_status() {
@@ -115,19 +139,19 @@ void print_status() {
   if ( print_status_timer < millis() ) {
     TRACE_PRINTLN(F("#print_task_callback()"));
     print_status_timer = millis() + PRINT_STATUS_TIMER;
-    
+
     Serial.write(27);       // ESC command
     Serial.print("[2J");    // clear screen command
     Serial.write(27);
     Serial.print("[H");     // cursor to home command
-  
+
     Serial.println(F(""));
     Serial.println(F("================"));
 
     Serial.print(F("DATE: "));
     sprintf(buf, "%02d:%02d:%02d", rtc.getHours(), rtc.getMinutes(), rtc.getSeconds());
     Serial.println(buf);
-    
+
     Serial.print(F("GPS Fix: "));
     Serial.println(gps_fixstatus, DEC);
     Serial.print(F("Latitude: "));
@@ -159,16 +183,16 @@ void print_status() {
     Serial.println(a4_hz, 2);
     Serial.print(F("Port 6 (Hz): "));
     Serial.println(a5_hz, 2);
-    
+
     Serial.print(F("Speed (km/h): "));
     Serial.println(speed, DEC);
 
-    for (int i = 0; i <= (sizeof(values) / sizeof(values[0])) - 1; i++){
+    for (int i = 0; i <= (sizeof(values) / sizeof(values[0])) - 1; i++) {
       Serial.print(values[i].name);
       Serial.print(F(": "));
       Serial.println(*values[i].value);
-    }  
-    
+    }
+
     Serial.println(F("================"));
   }
 #endif
@@ -176,7 +200,7 @@ void print_status() {
 
 
 /*void print_status() {
-#ifdef PRINT_STATUS
+  #ifdef PRINT_STATUS
   //char buf[16];
 
   if ( print_status_timer < millis() ) {
@@ -218,13 +242,13 @@ void print_status() {
     Serial.print(F("hunidity out,"));
     //#endif // HUMIDITY_OUT
 
-#ifdef TEMPERATURE_IN
+  #ifdef TEMPERATURE_IN
     Serial.print(F("temperature/10 in,"));
-#endif // TEMPERATURE_IN
+  #endif // TEMPERATURE_IN
 
-#ifdef HUMIDITY_IN
+  #ifdef HUMIDITY_IN
     Serial.print(F("humidity in,"));
-#endif // HUMIDITY_OUT
+  #endif // HUMIDITY_OUT
 
     Serial.println(F(","));
 
@@ -266,20 +290,20 @@ void print_status() {
     Serial.print(F(","));
     //#endif // TEMPERATURE_OUT
 
-#ifdef HUMIDITY_OUT
+  #ifdef HUMIDITY_OUT
     Serial.print(hum_out, DEC);
     Serial.print(F(","));
-#endif // HUMIDITY_OUT
+  #endif // HUMIDITY_OUT
 
-#ifdef TEMPERATURE_IN
+  #ifdef TEMPERATURE_IN
     Serial.print(temp_in, DEC);
     Serial.print(F(","));
-#endif // TEMPERATURE_IN
+  #endif // TEMPERATURE_IN
 
-#ifdef HUMIDITY_IN
+  #ifdef HUMIDITY_IN
     Serial.print(hum_in, DEC);
     Serial.print(F(","));
-#endif // HUMIDITY_OUT
+  #endif // HUMIDITY_OUT
 
 
     Serial.print(F("...#freeRam:"));
@@ -292,8 +316,8 @@ void print_status() {
   }
   //  fona_calculate_statistics();
 
-#endif // PRINT_STATUS
-}*/
+  #endif // PRINT_STATUS
+  }*/
 
 
 
@@ -307,10 +331,10 @@ void print_status() {
 /*void start_engine() {
   INFO_PRINTLN(F("#--->Start Engine"));
 
-#ifdef U8G2_DISPLAY
+  #ifdef U8G2_DISPLAY
   MainMenuPos = 2;
   display_update();
-#endif //U8G2_DISPLAY
+  #endif //U8G2_DISPLAY
 
   //if (engine_start_time_day != day) {
     //gps_distance_today = 0;
@@ -330,7 +354,7 @@ void print_status() {
 
   engine_start = unixTime(rtc.getHours(), rtc.getMinutes(), rtc.getSeconds(), rtc.getDay(), rtc.getMonth(), rtc.getYear());
 
-#ifdef TinyGSM
+  #ifdef TinyGSM
 
   if ( blynk_alarm ) {
     tinygsm_alarm();
@@ -342,17 +366,17 @@ void print_status() {
   }
 
 
-#endif
+  #endif
 
-#ifdef SDCARD
+  #ifdef SDCARD
   open_file();
   //delay(1000);
   log_to_sdcard();
-#endif //SDCARD
+  #endif //SDCARD
 
 
 
-}*/
+  }*/
 
 
 /*
@@ -365,10 +389,10 @@ void print_status() {
   //engine_running_sec_last_today += engine_running_sec;
 
 
-#ifdef U8G2_DISPLAY
+  #ifdef U8G2_DISPLAY
   MainMenuPos = 1;
   display_update();
-#endif //U8G2_DISPLAY
+  #endif //U8G2_DISPLAY
 
 
   engine_running = false;
@@ -376,22 +400,22 @@ void print_status() {
 
   //engine_running_total_last = engine_running_total_last;
 
-#ifdef SDCARD
+  #ifdef SDCARD
   close_file();
-#endif //SDCARD
+  #endif //SDCARD
 
 
   if ( dimmer_V > 2 ) {
     set_alarm(600, 200, 5, true);
   }
 
-#ifdef TinyGSM
+  #ifdef TinyGSM
   if ( tinygsm_go_online() ) {
     online = true;
   }
-#endif
+  #endif
 
-}*/
+  }*/
 
 
 /*
@@ -513,7 +537,25 @@ float get_distance(float latitude1, float longitude1, float latitude2, float lon
 
 void open_config() {
 #ifdef SDCARD
-  sdcard_open_config();
+
+  read_virtual_eeprom();
+
+  if ( enable_sd == 1 ) {
+    sdcard_open_config();
+  }
+  else {
+    display_bootmsg(F("SD is disabled"));
+  }
+
+
+  char PROGMEM sim_apn_flash[] = {SIM_APN};
+
+  for (int k = 0; k < strlen_P(sim_apn_flash); k++)
+  {
+    char myChar =  pgm_read_byte_near(sim_apn_flash + k);
+    Serial.print(myChar);
+  }
+
 #else
   unsigned int displayInt;
   float tmp;
@@ -536,6 +578,12 @@ void open_config() {
   tmp = pgm_read_float_near(RPM_MULTIP_in_flash);
   DEBUG_PRINTLN(tmp);
 
+  for (k = 0; k < strlen_P(sim_apn_flash); k++)
+  {
+    myChar =  pgm_read_byte_near(sim_apn_flash + k);
+    Serial.print(myChar);
+  }
+
 
   delay(500);
 
@@ -544,11 +592,170 @@ void open_config() {
 
 
 void save_config() {
-#ifdef SDCARD
+//#ifdef SDCARD
   sdcard_save_config();
-#else
+  write_virtual_eeprom();
 
-#endif // SDCARD
+  //char tmp[24];
+  //sim_apn.toCharArray(tmp, sim_apn.length());
+  //char tmp[] = toCharArray(sim_apn, sim_apn.length)
+  //char PROGMEM sim_apn_flash[24] = tmp;
+  //char tmp2[] = toCharArray(blynk_key, 12);
+  //char PROGMEM blynk_key_flash[] = tmp2;
+  // BLYNK KKEY
+  //for (int k = 0; k < strlen_P(blynk_key_flash); k++)
+  //{
+  //  blynk_key = pgm_read_byte_near(blynk_key_flash + k);
+  //  Serial.println(blynk_key);
+  //}
+
+//#else
+
+  /*for (int i = 0; i <= (sizeof(port_config) / sizeof(port_config[0])) - 1; i++){
+    logfile.print(F("# "));
+    logfile.println(port_config[i].desc);
+    logfile.print(port_config[i].name);
+    logfile.print(F("="));
+    logfile.println(*port_config[i].port, DEC);
+
+
+  }*/
+
+//#endif // SDCARD
+}
+
+void read_virtual_eeprom() {
+  //delay(10000);
+
+  if (EEPROM.isValid()) {
+
+    Serial.println("EEPROM has been written.");
+    Serial.println("Here is the content of the first 20 bytes:");
+
+    Serial.print("->");
+    for (int i=0; i<20; i++) {
+      Serial.print(" ");
+      Serial.print(EEPROM.read(i));
+    }
+    Serial.println();
+    for (int i = 0; i <= (sizeof(config) / sizeof(config[0])) - 1; i++){
+      //Serial.println(port_config[i].name);
+      //Serial.println(port_config[i].desc);
+      //Serial.println(*port_config[i].port);
+      /*if ( tmp.startsWith(config[i].name) ) {
+        SD_DEBUG_PRINT(F("found "));
+        SD_DEBUG_PRINTLN(config[i].desc);
+        tmp = getValue( tmp, '=', 1 );
+        *config[i].config = tmp.toInt();
+        //delay(1500);
+      }*/
+      *config[i].config = EEPROM.read(i);
+    }
+
+
+    char_config = flash_char_config.read();
+
+    sim_apn = String(char_config.sim_apn);
+    sim_user = String(char_config.sim_user);
+    sim_pass = String(char_config.sim_pass);
+    blynk_key = String(char_config.blynk_key);
+
+
+    Serial.println(char_config.sim_apn);
+    Serial.println(char_config.sim_user);
+    Serial.println(char_config.sim_pass);
+    Serial.println(char_config.blynk_key);
+
+
+    /*sim_apn = String(sim_apn_flash.read());
+    sim_user = sim_user_flash.read();
+    sim_pass = sim_pass_flash.read();
+    blynk_key = blynk_key_flash.read();*/
+
+    // SIM APN
+    /*for (int k = 0; k < strlen_P(sim_apn_flash); k++)
+    {
+      sim_apn = pgm_read_byte_near(sim_apn_flash + k);
+      Serial.println(sim_apn);
+    }
+    // BLYNK KKEY
+    for (int k = 0; k < strlen_P(blynk_key_flash); k++)
+    {
+      blynk_key = pgm_read_byte_near(blynk_key_flash + k);
+      Serial.println(blynk_key);
+    }*/
+
+
+  } else {
+    display_bootmsg(F("config flash is empty"));
+    //delay(3000);
+    //write_virtual_eeprom();
+  }
+  //delay(30000);
+}
+
+void write_virtual_eeprom() {
+  Serial.println(F("#Writing config to virtual EEPROM"));
+  Serial.print("->");
+  //delay(10000);
+  for (int i = 0; i <= (sizeof(config) / sizeof(config[0])) - 1; i++){
+    Serial.print(config[i].name);
+    //Serial.println(config[i].desc);
+    Serial.print(F(": "));
+    Serial.println(*config[i].config);
+    EEPROM.write(i, *config[i].config);
+
+  }
+
+  //char tmp_apn[36];
+  //sim_apn.toCharArray(tmp_apn, sim_apn.length());
+  //sim_apn_flash.write(tmp_apn);
+  char_config = flash_char_config.read();
+  sim_apn.toCharArray( char_config.sim_apn, 36);
+  sim_user.toCharArray( char_config.sim_user, 12);
+  sim_pass.toCharArray( char_config.sim_pass, 8);
+  blynk_key.toCharArray( char_config.blynk_key, 36);
+
+
+  flash_char_config.write(char_config);
+
+  char_config = flash_char_config.read();
+  Serial.println(char_config.sim_apn);
+  Serial.println(char_config.sim_user);
+  Serial.println(char_config.sim_pass);
+  Serial.println(char_config.blynk_key);
+
+
+  /*sim_user_flash.write(sim_user);
+  sim_pass_flash.write(sim_pass);
+  blynk_key_flash.write(blynk_key);
+
+
+  Serial.println(String(sim_apn_flash.read()));
+  Serial.println(sim_user_flash.read());
+  Serial.println(sim_pass_flash.read());
+  Serial.println(blynk_key_flash.read());*/
+
+
+  /*for (int i=0; i<20; i++) {
+    EEPROM.write(i, 100+i);
+    Serial.print(" ");
+    Serial.print(100+i);
+  }
+  Serial.println();*/
+
+  // commit() saves all the changes to EEPROM, it must be called
+  // every time the content of virtual EEPROM is changed to make
+  // the change permanent.
+  // This operation burns Flash write cycles and should not be
+  // done too often. See readme for details:
+  // https://github.com/cmaglie/FlashStorage#limited-number-of-writes
+  EEPROM.commit();
+  Serial.println("Done!");
+
+  Serial.print(F("#isValid() returns "));
+  Serial.println(EEPROM.isValid());
+  //delay(10000);
 }
 
 
@@ -588,91 +795,4 @@ String getValue(String data, char separator, int index)
     }
   }
   return found > index ? data.substring(strIndex[0], strIndex[1]) : "";
-}
-
-void TC5_Handler (void) {
-  //YOUR CODE HERE
-  //if(state == true) {
-  //digitalWrite(LED_PIN,HIGH);
-  //} else {
-  //digitalWrite(LED_PIN,LOW);
-  //}
-  //state = !state;
-  // END OF YOUR CODE
-
-  /*if ( display_update_timer < millis() ) {
-    display_update_timer = millis() + U8G2_DISPLAY_UPDATE_TIMER;
-    //noInterrupts();
-    display_loop();
-    //interrupts();
-    }*/
-
-
-  TC5->COUNT16.INTFLAG.bit.MC0 = 1; //don't change this, it's part of the timer code
-}
-
-/*
-    TIMER SPECIFIC FUNCTIONS FOLLOW
-    you shouldn't change these unless you know what you're doing
-*/
-
-//Configures the TC to generate output events at the sample frequency.
-//Configures the TC in Frequency Generation mode, with an event output once
-//each time the audio sample frequency period expires.
-void tcConfigure(int sampleRate)
-{
-  // Enable GCLK for TCC2 and TC5 (timer counter input clock)
-  GCLK->CLKCTRL.reg = (uint16_t) (GCLK_CLKCTRL_CLKEN | GCLK_CLKCTRL_GEN_GCLK0 | GCLK_CLKCTRL_ID(GCM_TC4_TC5)) ;
-  while (GCLK->STATUS.bit.SYNCBUSY);
-
-  tcReset(); //reset TC5
-
-  // Set Timer counter Mode to 16 bits
-  TC5->COUNT16.CTRLA.reg |= TC_CTRLA_MODE_COUNT16;
-  // Set TC5 mode as match frequency
-  TC5->COUNT16.CTRLA.reg |= TC_CTRLA_WAVEGEN_MFRQ;
-  //set prescaler and enable TC5
-  TC5->COUNT16.CTRLA.reg |= TC_CTRLA_PRESCALER_DIV1 | TC_CTRLA_ENABLE;
-  //set TC5 timer counter based off of the system clock and the user defined sample rate or waveform
-  TC5->COUNT16.CC[0].reg = (uint16_t) (SystemCoreClock / sampleRate - 1);
-  while (tcIsSyncing());
-
-  // Configure interrupt request
-  NVIC_DisableIRQ(TC5_IRQn);
-  NVIC_ClearPendingIRQ(TC5_IRQn);
-  NVIC_SetPriority(TC5_IRQn, 0);
-  NVIC_EnableIRQ(TC5_IRQn);
-
-  // Enable the TC5 interrupt request
-  TC5->COUNT16.INTENSET.bit.MC0 = 1;
-  while (tcIsSyncing()); //wait until TC5 is done syncing
-}
-
-//Function that is used to check if TC5 is done syncing
-//returns true when it is done syncing
-bool tcIsSyncing()
-{
-  return TC5->COUNT16.STATUS.reg & TC_STATUS_SYNCBUSY;
-}
-
-//This function enables TC5 and waits for it to be ready
-void tcStartCounter()
-{
-  TC5->COUNT16.CTRLA.reg |= TC_CTRLA_ENABLE; //set the CTRLA register
-  while (tcIsSyncing()); //wait until snyc'd
-}
-
-//Reset TC5
-void tcReset()
-{
-  TC5->COUNT16.CTRLA.reg = TC_CTRLA_SWRST;
-  while (tcIsSyncing());
-  while (TC5->COUNT16.CTRLA.bit.SWRST);
-}
-
-//disable TC5
-void tcDisable()
-{
-  TC5->COUNT16.CTRLA.reg &= ~TC_CTRLA_ENABLE;
-  while (tcIsSyncing());
 }

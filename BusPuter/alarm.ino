@@ -70,5 +70,4 @@ void set_alarm(int on, int pause, int count, boolean blink) {
   
 }
 
-
 #endif // ALARM_OUT

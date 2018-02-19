@@ -7,7 +7,7 @@
  *  Author: Brun von der Gönne
  *
  *  This module will only used by 32Bit processors.
- * 
+ *
  ****************************************************/
 
 
@@ -25,7 +25,7 @@
 #define small_font_high 8
 #define medium_font u8g2_font_profont12_tf
 #define medium_font_high 10
-#define big_font u8g2_font_profont29_mn 
+#define big_font u8g2_font_profont29_mn
 #define big_font_high 24
 
 // this defines the starting possition.
@@ -37,7 +37,7 @@
 #define BIG_VAL_POS_X Xsize/2 + Xpos - 36
 #define BIG_VAL_POS_Y Ysize/2 + Ypos - big_font_high/2
 #define UNIT_POS_X BIG_VAL_POS_X + 36 + 30
-#define UNIT_POS_Y Ysize/2 + Ypos - big_font_high/2 
+#define UNIT_POS_Y Ysize/2 + Ypos - big_font_high/2
 
 
 // Layout Nr. 1
@@ -64,7 +64,7 @@
 #define LAYOUT3_2_X Xsize/2 + Xpos - 36
 #define LAYOUT3_2_Y Ysize/2 + Ypos - big_font_high/2
 #define LAYOUT3_3_X LAYOUT3_2_X + 36 + 30
-#define LAYOUT3_3_Y Ysize/2 + Ypos - big_font_high/2 
+#define LAYOUT3_3_Y Ysize/2 + Ypos - big_font_high/2
 
 // Layout Nr. 4
 #define LAYOUT4_1_X Xpos
@@ -85,13 +85,13 @@
 #define LAYOUT5_4_Y LAYOUT5_3_Y + small_font_high
 
 #endif
-#ifdef OLED 
+#ifdef OLED
 
 #define small_font u8g2_font_profont10_tf
 #define small_font_high 8
 #define medium_font u8g2_font_profont12_tf
 #define medium_font_high 10
-#define big_font u8g2_font_profont29_mn 
+#define big_font u8g2_font_profont29_mn
 #define big_font_high 24
 
 // this defines the starting possition.
@@ -103,7 +103,7 @@
 #define BIG_VAL_POS_X Xsize/2 + Xpos - 36
 #define BIG_VAL_POS_Y Ysize/2 + Ypos - big_font_high/2
 #define UNIT_POS_X BIG_VAL_POS_X + 36 + 30
-#define UNIT_POS_Y Ysize/2 + Ypos - big_font_high/2 
+#define UNIT_POS_Y Ysize/2 + Ypos - big_font_high/2
 
 
 // Layout Nr. 1
@@ -130,7 +130,7 @@
 #define LAYOUT3_2_X Xsize/2 + Xpos - 36
 #define LAYOUT3_2_Y Ysize/2 + Ypos - big_font_high/2
 #define LAYOUT3_3_X LAYOUT3_2_X + 36 + 30
-#define LAYOUT3_3_Y Ysize/2 + Ypos - big_font_high/2 
+#define LAYOUT3_3_Y Ysize/2 + Ypos - big_font_high/2
 
 // Layout Nr. 4
 #define LAYOUT4_1_X Xpos
@@ -175,7 +175,7 @@ void bootscreen() {
  * simple clock with date
  */
 void menu_clock() {
-  
+
   u8g2.setFont(big_font);
   u8g2.setFontPosTop();
   u8g2.setCursor(LAYOUT1_1_X, LAYOUT1_1_Y);
@@ -187,7 +187,7 @@ void menu_clock() {
   u8g2.setCursor(LAYOUT1_2_X + 10, LAYOUT1_2_Y);
   sprintf(buf, "%02d.%02d.%04d", day, month, year);
   u8g2.print(buf);
-  
+
   switch (button_1) {
     case 1: MainMenuPos++; break;
 //    case 2: MainMenuPos--; break;
@@ -195,7 +195,7 @@ void menu_clock() {
 //    case 2: MainMenuPos = 101; break;
   }
   button_1 = 0;
-  
+
 }
 
 
@@ -231,7 +231,7 @@ void menu_speed() {
     u8g2.print(F("\xb0"));
     u8g2.print(F("C"));
   }
-  
+
   //Time
   u8g2.setFontPosTop();
   u8g2.setCursor(LAYOUT2_4_X, LAYOUT2_4_Y);
@@ -265,12 +265,12 @@ void menu_gpsinfo() {
   u8g2.print(gps_altitude, DEC);
   u8g2.print(F("m"));
   u8g2.setCursor(LAYOUT5_4_X, LAYOUT5_4_Y);
-  u8g2.print(F("Empfang: "));
-  u8g2.print(gps_view_satellites, DEC);
-  u8g2.print(F(" ( "));
+  u8g2.print(F("Empfang: u: "));
   u8g2.print(gps_used_satellites, DEC);
+  u8g2.print(F(" ( v: "));
+  u8g2.print(gps_view_satellites, DEC);
   u8g2.print(F(" )"));
-  
+
 
   switch (button_1) {
     case 1: MainMenuPos++; break;
@@ -306,7 +306,7 @@ void menu_gpsinfo2() {
  * distance, speed (avg, max), triptime
  */
 void menu_trip() {
-  
+
   u8g2.setFont(small_font);
   u8g2.setFontPosTop();
   u8g2.setCursor(LAYOUT4_1_X, LAYOUT4_1_Y);
@@ -314,7 +314,7 @@ void menu_trip() {
   u8g2.setFont(medium_font);
   u8g2.setCursor(LAYOUT4_2_X, LAYOUT4_2_Y);
   //u8g2.print(F("Dist: "));
-  uint16_t m = gps_distance - ( gps_distance / 1000 ) * 1000;
+  uint16_t m = trip_distance - ( gps_distance / 1000 ) * 1000;
   sprintf (buf, "%04d.%1d km", gps_distance / 1000, m / 100);
 
   u8g2.print(buf);
@@ -333,7 +333,7 @@ void menu_trip() {
   switch (button_1) {
     case 1: MainMenuPos++; break;
     case 2:
-      gps_distance_trip = 0;
+      //gps_distance_trip = 0;
       gps_speed_max_trip = 0;
       engine_running_total = 0;
       break;
@@ -397,7 +397,7 @@ void menu_clima() {
 
   if ( temp_out_port == 0 ) {
     MainMenuPos++;
-    
+
   } else {
     // use a different layout if humidity exists
     if ( hum_out > 0 ) {
@@ -412,14 +412,14 @@ void menu_clima() {
       m = (temp_out - ( (int) temp_out ))*10;
       sprintf (buf, "%02d.%1d", (int)temp_out, m);
       u8g2.print(buf);
-      
+
       //u8g2.print(temp_out, 1);
       u8g2.print(F("\xb0"));
       u8g2.print(F("C"));
-  
+
       u8g2.setFont(small_font);
       u8g2.setCursor(LAYOUT4_3_X + 28, LAYOUT4_3_Y);
-  
+
       sprintf (buf, "%02d", hum_out);
       u8g2.print(buf);
       u8g2.print(F("%"));
@@ -436,7 +436,7 @@ void menu_clima() {
       m = (temp_out - ( (int) temp_out ))*10;
       sprintf (buf, "%02d.%1d", (int)temp_out, m);
       u8g2.print(buf);
-      
+
       u8g2.setFont(small_font);
       u8g2.setCursor(LAYOUT3_3_X, LAYOUT3_3_Y);
       u8g2.print(F("\xb0"));
@@ -447,7 +447,7 @@ void menu_clima() {
       //case 2: MainMenuPos = SubMenu3Nr; break;
     }
     button_1 = 0;
-  } 
+  }
 }
 
 
@@ -458,7 +458,7 @@ void menu_clima() {
 void menu_values() {
   if ( *values[MenuValuesPos].port == 0 ) {
     if (MenuValuesPos+1 >= (sizeof(values) / sizeof(values[0])) ) {
-      MainMenuPos++; 
+      MainMenuPos++;
       MenuValuesPos = 0;
     } else {
       MenuValuesPos++;
@@ -466,7 +466,7 @@ void menu_values() {
   }
   else if ( !values[MenuValuesPos].show_off && !engine_running) {
     if (MenuValuesPos+1 >= (sizeof(values) / sizeof(values[0])) ) {
-      MainMenuPos++; 
+      MainMenuPos++;
       MenuValuesPos = 0;
     } else {
       MenuValuesPos++;
@@ -491,7 +491,7 @@ void menu_values() {
     else if ( *values[MenuValuesPos].value > 9 ) {
       digits = 2;
     }
-    
+
     if ( values[MenuValuesPos].digits != 0 ) {
       digits += 1 + values[MenuValuesPos].digits;
     }
@@ -500,25 +500,25 @@ void menu_values() {
     for (digits; digits>0; digits--) {
       u8g2.print(F(" "));
     }
-    
+
     u8g2.print(*values[MenuValuesPos].value, values[MenuValuesPos].digits);
 
     u8g2.setFont(medium_font);
     u8g2.setCursor(LAYOUT3_3_X, LAYOUT3_3_Y);
     u8g2.print(values[MenuValuesPos].suffix);
-    
+
     switch (button_1) {
-      case 1: 
+      case 1:
         if (MenuValuesPos+1 >= (sizeof(values) / sizeof(values[0])) ) {
-          MainMenuPos++; 
+          MainMenuPos++;
           MenuValuesPos = 0;
         } else {
           MenuValuesPos++;
         }
-        break;          
+        break;
       case 2: MainMenuPos--; break;
     }
-    button_1 = 0; 
+    button_1 = 0;
   }
 }
 
@@ -562,7 +562,7 @@ void menu_optionen() {
   u8g2.setFontPosTop();
   u8g2.setCursor(Xpos + 10, Ypos + 10);
   u8g2.print(F("Optionen"));
-  
+
 
   switch (button_1) {
     case 1: MainMenuPos++; break;
@@ -575,10 +575,10 @@ void menu_optionen() {
  * Dynamic Menu for config parameters
  */
 void menu_opt_config() {
-  
-  if ( port_config[MenuConfigPos].steps == 0 ) {
-    if (MenuConfigPos+1 >= (sizeof(port_config) / sizeof(port_config[0])) ) {
-      MainMenuPos++; 
+
+  if ( config[MenuConfigPos].steps == 0 ) {
+    if (MenuConfigPos+1 >= (sizeof(config) / sizeof(config[0])) ) {
+      MainMenuPos++;
       MenuConfigPos = 0;
     } else {
       MenuConfigPos++;
@@ -588,12 +588,12 @@ void menu_opt_config() {
     u8g2.setFont(small_font);
     u8g2.setFontPosTop();
     u8g2.setCursor(LAYOUT4_1_X, LAYOUT4_1_Y);
-    u8g2.print(port_config[MenuConfigPos].desc);
+    u8g2.print(config[MenuConfigPos].desc);
     u8g2.setFont(medium_font);
     u8g2.setFontPosTop();
     u8g2.setCursor(LAYOUT4_2_X, LAYOUT4_2_Y);
 
-    u8g2.print(*port_config[MenuConfigPos].port);
+    u8g2.print(*config[MenuConfigPos].config);
 
     u8g2.setFont(small_font);
     u8g2.setCursor(LAYOUT4_3_X, LAYOUT4_3_Y);
@@ -605,25 +605,25 @@ void menu_opt_config() {
       u8g2.print(F("long -> edit"));
     }
 
-    
+
     switch (button_1) {
-      case 1: 
+      case 1:
         if ( MenuEdit ) {
-          *port_config[MenuConfigPos].port = *port_config[MenuConfigPos].port + port_config[MenuConfigPos].steps;
-          if ( *port_config[MenuConfigPos].port > port_config[MenuConfigPos].max ) {
-            *port_config[MenuConfigPos].port = 0;
+          *config[MenuConfigPos].config = *config[MenuConfigPos].config + config[MenuConfigPos].steps;
+          if ( *config[MenuConfigPos].config > config[MenuConfigPos].max ) {
+            *config[MenuConfigPos].config = 0;
           }
         }
         else {
-          if (MenuConfigPos+1 >= (sizeof(port_config) / sizeof(port_config[0])) ) {
-            MainMenuPos++; 
+          if (MenuConfigPos+1 >= (sizeof(config) / sizeof(config[0])) ) {
+            MainMenuPos++;
             MenuConfigPos = 0;
           } else {
             MenuConfigPos++;
           }
         }
-        break;          
-      case 2: 
+        break;
+      case 2:
         if ( MenuEdit ) {
           MenuEdit = false;
         }
@@ -632,7 +632,7 @@ void menu_opt_config() {
         }
         break;
     }
-    button_1 = 0; 
+    button_1 = 0;
   }
 }
 
@@ -646,21 +646,21 @@ void menu_save_config() {
 
   u8g2.setCursor(Xpos + 10, Ypos + 10);
   //u8g2.print(F("press and hold to save"));
-  
+
   switch (saved_config) {
     case 0: u8g2.print(F("hold to save")); break;
     case 1: u8g2.print(F("OK config saved")); break;
     case 2: u8g2.print(F("ERR: stop Engine")); break;
-    
+
   }
-  
+
 
   switch (button_1) {
-    case 1: 
-      MainMenuPos++; 
+    case 1:
+      MainMenuPos++;
       saved_config = 0;
       break;
-    case 2: 
+    case 2:
       if (!engine_running) {
         if (saved_config != 1 ) {
           saved_config = 1;
@@ -672,7 +672,7 @@ void menu_save_config() {
       else {
         saved_config = 2;
       }
-      
+
       break;
   }
   button_1 = 0;
@@ -700,7 +700,7 @@ void menu_debug_ports() {
   u8g2.print(F("Port4: "));
   u8g2.print(a3_V, 1);
 
-  
+
   switch (button_1) {
     case 1: MainMenuPos++; break;
     //case 2: speed_source++; break;
@@ -719,8 +719,8 @@ void menu_debug_ports_2() {
   u8g2.setCursor(Xpos, Ypos+small_font_high);
   u8g2.print(F("Port5: "));
   u8g2.print(a5_hz);
-  
-  
+
+
   u8g2.setCursor(Xpos, Ypos+2*small_font_high);
   u8g2.print(F("Fuel Ohm: "));
   u8g2.print(fuel_ohm);
@@ -728,7 +728,7 @@ void menu_debug_ports_2() {
   u8g2.setCursor(Xpos, Ypos+3*small_font_high);
   u8g2.print(F("Temp Ohm: "));
   u8g2.print(water_temp_ohm);
-  
+
   switch (button_1) {
     case 1: MainMenuPos++; break;
     //case 2: speed_source++; break;

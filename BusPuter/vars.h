@@ -1,7 +1,7 @@
 /****************************************************
  * Busputer Variables
- * 
- * for detailed informations see 
+ *
+ * for detailed informations see
  * https://github.com/brvdg/busputer/wiki
  ****************************************************/
 
@@ -20,11 +20,11 @@ String bootmsg3;
 // this is a large buffer for replies
 char replybuffer[255];
 // a smal buffer
-char buf[24]; //
+char buf[36]; //
 
-boolean serial_export = true;
-boolean SPI_lock = false;
-boolean I2C_lock = false;
+bool serial_export = true;
+bool SPI_lock = false;
+bool I2C_lock = false;
 byte saved_config = 0;
 
 /*
@@ -94,7 +94,13 @@ byte oil_temp_warning = OIL_TEMP_WARNING;
 byte alarm = 0;
 unsigned long alarm_timer = 0;
 
-// OneWire 
+// Watchdog
+unsigned long watchdog_timer = 0;
+//const boolean wdreset = false;
+PROGMEM boolean wdreset = false;
+
+
+// OneWire
 bool onewire_available = false;
 
 //I2C
@@ -112,11 +118,15 @@ double lm75_2_temp = 0;
 byte i2c_led_disp_clock = 1;
 
 // TinyGSM
+byte enable_tinygsm = 1;
+boolean tinygsminit = false;
 String sim_apn = SIM_APN;
 String sim_user = SIM_USER;
 String sim_pass = SIM_PASS;
 String blynk_key = BLYNK_KEY;
 boolean online = false;
+boolean startmsg = true;
+byte online_interval = ONLINE_INTERVALL;
 
 byte blynk_offline_counter = 0;
 boolean geo_fence_enabled = false;
@@ -156,7 +166,7 @@ long engine_running_sec = 0;
 //long engine_running = 0;
 long engine_running_total = 0;
 long engine_running_total_last = 0;
-//long engine_running_trip = 0;
+//long engine_running_gps = 0;
 long engine_running_trip_last = 0;
 //long engine_running_sec_last_all = 0;
 //long engine_running_sec_last_today = 0;
@@ -218,6 +228,7 @@ RTCZero rtc;
 /*
  * SD Card configuration
  */
+byte enable_sd = 1;
 #ifdef SDCARD
 //#define cardSelect 4
 #define KMLLOG    //???
@@ -236,7 +247,8 @@ byte lastfile_config = 0;
  * FONA library
  */
 
-int8_t gps_fixstatus;
+boolean gps_fixstatus;
+byte gps_fixerrcnt = 255;
 int gps_year;
 int gps_day;
 int gps_month;
@@ -256,8 +268,8 @@ int gps_altitude;
 int gps_view_satellites;
 int gps_used_satellites;
 int gps_altitude_blynk;
-int gps_view_satellites_blynk;
-int gps_used_satellites_blynk;
+int gps_view_satellites_blynk = 255;
+int gps_used_satellites_blynk = 255;
 float gps_latitude, gps_longitude;
 float gps_latitude_old = 0;
 float gps_longitude_old = 0;
@@ -274,7 +286,7 @@ float gps_latitude_geo_fence = 0;
 float gps_longitude_geo_fence = 0;
 boolean gps_success = false;
 boolean gps_fix = false;
-uint32_t gps_distance_trip = 0;
+//uint32_t gps_distance_trip = 0;
 uint32_t gps_distance = 0;
 //uint32_t gps_distance_start = 0;
 //uint32_t gps_distance_today = 0;
@@ -282,30 +294,19 @@ uint32_t gps_distance = 0;
 boolean gprs_tracking = false;
 
 
-#ifdef FONA
-
-
-
-//uint8_t fona_type;
-//char fona_time[23];
-//uint16_t fona_batt = 0;
-
-#endif // FONA
-
-
 /*
- * DS18B20 Temperatursensor
+ * Trip counter
  */
-//#ifdef ONEWIRE
 
-//#ifdef DS18B20_AS_IN
-//#define TEMPERATURE_IN
-//#endif // DS18B20_AS_IN
-//#ifdef DS18B20_AS_OUT
-//#define TEMPERATURE_OUT
-//#endif // DS18B20_AS_OUT
+unsigned long trip_distance = 0;
+unsigned long trip_dist_last = 0;
+unsigned long trip_dist_all_last = 0;
+unsigned long trip_dist_all = 0;
 
-//#endif // ONEWIRE
+unsigned long trip_time = 0;
+unsigned long trip_time_last = 0;
+
+unsigned long trip_timer = 0;
 
 
 /*
@@ -353,39 +354,43 @@ boolean alarm_system_triggered = false;
 
 #define MAX_PORTS 10
 #define MIN_CONFIG 1
-#define DEFAULT_STEPS 0 // if "0" -> menue is off
-struct struct_port_config {
+#define DEFAULT_STEPS 1 // if "0" -> menue is off
+
+struct struct_config {
   char name[20];
   char desc[25];
-  byte *port;
+  byte *config;
   byte steps;
   byte max;
   byte min;
+  byte PROGMEM flash_config;
 };
 
-const struct_port_config port_config[] = {
-  {"bord_voltage_port", "Bord Voltage Port", &bord_voltage_port, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG},
-  {"dimmer_port", "Dimmer Port", &dimmer_port, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG},
-  {"fuel_port", "Fuel Gauge Port", &fuel_port, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG},
-  {"water_temp_port", "Water Gauge Port", &water_temp_port, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG},
-  {"rpm_port", "RPM Port", &rpm_port, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG},
+const struct_config config[] = {
+  {"bord_voltage_port", "Bord Voltage Port", &bord_voltage_port, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG, bord_voltage_port},
+  {"dimmer_port", "Dimmer Port", &dimmer_port, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG, dimmer_port},
+  {"fuel_port", "Fuel Gauge Port", &fuel_port, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG, fuel_port},
+  {"water_temp_port", "Water Gauge Port", &water_temp_port, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG, water_temp_port},
+  {"rpm_port", "RPM Port", &rpm_port, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG, rpm_port},
 //  {"rpm_multipl", "RPM Multiplikator", &rpm_multipl, DEFAULT_STEPS, 255, 1},
-  {"speedpulse_port", "GALA Port", &speedpulse_port, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG},
-  {"speed_source", "Speed Source", &speed_source, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG},
-  {"door_port", "Door Port", &door_port, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG},
-  {"oil_temp_port", "Oil Temp. Port", &oil_temp_port, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG},
-  {"oil_pressure_port", "Oil Press. Port", &oil_pressure_port, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG},
-  {"i2c_led_disp_clock", "LED Clock", &i2c_led_disp_clock, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG},
-  {"lastfile_config", "Last Log File (x10)", &lastfile_config, 1, 99, 1},
-  {"dimmer_max", "Dimmer Max.", &dimmer_max, 10, 100},
-  {"dimmer_min", "Dimmer Min.", &dimmer_min, 10, 100},
-  {"clock_view", "Clock and Temp.", &clock_view, 1, 1, 0},
-  {"speed_offset", "Speed Offset", &speed_offset, 1, 25, 0},
-  {"water_temp_warning", "Water Temp Warning", &water_temp_warning, 5, 130, 80},
-  {"oil_temp_warning", "Oil Temp Warning", &oil_temp_warning, 5, 150, 80},
-  {"oil_press_warning", "Oil Press. Warning (/10)", &oil_press_warning, 1, 10, 1}
+  {"speedpulse_port", "GALA Port", &speedpulse_port, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG, speedpulse_port},
+  {"speed_source", "Speed Source", &speed_source, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG, speed_source},
+  {"door_port", "Door Port", &door_port, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG, door_port},
+  {"oil_temp_port", "Oil Temp. Port", &oil_temp_port, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG, oil_temp_port},
+  {"oil_pressure_port", "Oil Press. Port", &oil_pressure_port, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG, oil_pressure_port},
+  {"i2c_led_disp_clock", "LED Clock", &i2c_led_disp_clock, DEFAULT_STEPS, MAX_PORTS, MIN_CONFIG, i2c_led_disp_clock},
+  {"lastfile_config", "Last Log File (x10)", &lastfile_config, 1, 99, 1, lastfile_config},
+  {"dimmer_max", "Dimmer Max.", &dimmer_max, 10, 100, dimmer_max},
+  {"dimmer_min", "Dimmer Min.", &dimmer_min, 10, 100, dimmer_min},
+  {"clock_view", "Clock and Temp.", &clock_view, 1, 1, 0, clock_view},
+  {"speed_offset", "Speed Offset", &speed_offset, 1, 25, 0, speed_offset},
+  {"water_temp_warning", "Water Temp Warning", &water_temp_warning, 5, 130, 80, water_temp_warning},
+  {"oil_temp_warning", "Oil Temp Warning", &oil_temp_warning, 5, 150, 80, oil_temp_warning},
+  {"oil_press_warning", "Oil Press. Warning (/10)", &oil_press_warning, 1, 10, 1, oil_press_warning},
+  {"online_interval", "Online Intervall (min)", &online_interval, 5, 240, 5, online_interval},
+  {"enable_sd", "SD Card support", &enable_sd, 1, 1, 0, enable_sd},
+  {"enable_tinygsm", "GSM/GPS support", &enable_tinygsm, 1, 1, 0}
 };
-
 
 
 
@@ -401,7 +406,7 @@ struct struct_values {
 
 const struct_values values[] {
   {"bord_voltage", "Bordspannung", &bord_voltage, 1, "V", false, &bord_voltage_port},
-  {"fuel_l", "Tank", &fuel_l, 0, "l", false, &fuel_port}, 
+  {"fuel_l", "Tank", &fuel_l, 0, "l", false, &fuel_port},
   {"water_temp", "Kuehlwasser", &water_temp, 0, "\xb0 C", false, &water_temp_port},
   {"rpm", "RPM", &rpm, 0, "U/min", false, &rpm_port},
   {"oil_temp", "Oel Temp.", &oil_temp, 0, "\xb0 C", false, &oil_temp_port},
@@ -412,9 +417,21 @@ const struct_values values[] {
 /*
  * saving the configuration at the flash
  */
+typedef struct {
+   char sim_pass[8];
+   char sim_apn[36];
+   char sim_user[12];
+   char blynk_key[36];
+} struckt_char_config;
 
-const PROGMEM uint16_t config_in_flash[]  = { SPEEDSOURCE, SPEEDPULSE_PORT, RPM_PORT, RPM_MULTIPL};
-const float RPM_MULTIP_in_flash[] PROGMEM = { RPM_MULTIPL };
+struckt_char_config char_config;
+FlashStorage(flash_char_config, struckt_char_config);
+
+FlashStorage(flash_watchdog_reset, boolean);
+
+
+//const PROGMEM uint16_t config_in_flash[]  = { SPEEDSOURCE, SPEEDPULSE_PORT, RPM_PORT, RPM_MULTIPL};
+//const float RPM_MULTIP_in_flash[] PROGMEM = { RPM_MULTIPL };
 
 //const PROGMEM uint16_t SPEEDSOURCE_in_flash  = SPEEDSOURCE;
 
@@ -424,9 +441,9 @@ const float RPM_MULTIP_in_flash[] PROGMEM = { RPM_MULTIPL };
  * based on http://christianscode.blogspot.de/2015/07/arduino-timestamp-function.html
  *
  * Function extracted from the library http://playground.arduino.cc/Code/Time
- * if you just need the function without compiling few kbs and you need to save 
+ * if you just need the function without compiling few kbs and you need to save
  * space, this is the way to go
- * 
+ *
  */
 
 #define SECS_PER_MIN  (60UL)
@@ -446,5 +463,3 @@ static  const uint8_t monthDays[]={31,28,31,30,31,30,31,31,30,31,30,31}; // API 
 
 unsigned long print_status_timer = 0;
 #endif // PRINT_STATUS
-
-
